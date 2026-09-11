@@ -181,7 +181,6 @@ describe('resolveMomentFromChain', () => {
         },
         owner: OWNER,
         tokenUri: 'ar://inprocess-uri',
-        soldOut: false,
       } as any);
       vi.mocked(convertOnChainSaleToApi).mockReturnValue(mockSaleConfig as any);
     });
@@ -234,7 +233,6 @@ describe('resolveMomentFromChain', () => {
       saleConfig: {},
       owner: OWNER,
       tokenUri: null,
-      soldOut: false,
     } as any);
     vi.mocked(convertOnChainSaleToApi).mockReturnValue(mockSaleConfig as any);
 
