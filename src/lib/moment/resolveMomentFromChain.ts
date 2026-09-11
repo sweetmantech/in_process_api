@@ -53,15 +53,15 @@ const resolveMomentFromChain = async (
     };
   }
 
-  const { saleConfig, owner, tokenUri, soldOut } =
-    await getInProcessMomentInfo(moment);
+  const { saleConfig, owner, tokenUri } = await getInProcessMomentInfo(moment);
   return {
     id: null,
     uri: tokenUri,
     contentUri: null,
     owner,
     saleConfig: convertOnChainSaleToApi(saleConfig),
-    soldOut,
+    // Unindexed In Process moments have no DB mint counter yet.
+    soldOut: false,
   };
 };
 

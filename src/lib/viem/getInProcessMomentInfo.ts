@@ -40,21 +40,9 @@ const getInProcessMomentInfo = async (moment: Moment) => {
     functionName: 'owner',
     args: [],
   };
-  const tokenInfoCall = {
-    address: collectionAddress,
-    abi: zoraCreator1155ImplABI,
-    functionName: 'getTokenInfo',
-    args: [BigInt(tokenId)],
-  };
 
   const infoCalls = await publicClient.multicall({
-    contracts: [
-      erc20SaleConfigCall,
-      fixedSaleConfigCall,
-      uriCall,
-      ownerCall,
-      tokenInfoCall,
-    ],
+    contracts: [erc20SaleConfigCall, fixedSaleConfigCall, uriCall, ownerCall],
   });
 
   const saleConfig =
@@ -68,17 +56,10 @@ const getInProcessMomentInfo = async (moment: Moment) => {
           type: MomentType.FixedPriceMint,
         };
 
-  const tokenInfo = infoCalls[4]?.result;
-  const soldOut = tokenInfo
-    ? tokenInfo.maxSupply > BigInt(0) &&
-      tokenInfo.maxSupply === tokenInfo.totalMinted
-    : false;
-
   return {
     saleConfig,
     tokenUri: infoCalls[2].result,
     owner: infoCalls[3].result,
-    soldOut,
   };
 };
 
