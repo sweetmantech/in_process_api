@@ -13,15 +13,11 @@ vi.mock('@/lib/sales/convertOnChainSaleToApi', () => ({
 vi.mock('@/lib/viem/getInProcessMomentInfo', () => ({
   default: vi.fn(),
 }));
-vi.mock('@/lib/viem/getInProcessSoldOut', () => ({
-  default: vi.fn(),
-}));
 
 import selectSale from '@/lib/supabase/in_process_sales/selectSale';
 import { convertDatabaseSaleToApi } from '@/lib/sales/convertDatabaseSaleToApi';
 import { convertOnChainSaleToApi } from '@/lib/sales/convertOnChainSaleToApi';
 import getInProcessMomentInfo from '@/lib/viem/getInProcessMomentInfo';
-import getInProcessSoldOut from '@/lib/viem/getInProcessSoldOut';
 import resolveMomentFromDb from '@/lib/moment/resolveMomentFromDb';
 import type { MomentWithCollection } from '@/lib/supabase/in_process_moments/selectMoments';
 
@@ -30,11 +26,15 @@ const CREATOR = '0xcreator000000000000000000000000000000000' as const;
 
 const moment = { collectionAddress: COLLECTION, tokenId: '1', chainId: 8453 };
 
-const makeDbMoment = (protocol: string): MomentWithCollection => ({
+const makeDbMoment = (
+  protocol: string,
+  overrides: Partial<MomentWithCollection> = {}
+): MomentWithCollection => ({
   id: 'moment-uuid',
   uri: 'ar://metadata-hash',
   token_id: 1,
   max_supply: 0,
+  total_minted: 0,
   created_at: '2024-01-01T00:00:00.000Z',
   updated_at: '2024-01-01T00:00:00.000Z',
   channel: null,
@@ -45,6 +45,7 @@ const makeDbMoment = (protocol: string): MomentWithCollection => ({
     creator: CREATOR,
     protocol,
   },
+  ...overrides,
 });
 
 const mockSaleConfig = {
@@ -70,13 +71,11 @@ describe('resolveMomentFromDb', () => {
       vi.mocked(convertDatabaseSaleToApi).mockReturnValue(
         mockSaleConfig as any
       );
-      vi.mocked(getInProcessSoldOut).mockResolvedValue(false);
 
       const result = await resolveMomentFromDb(moment, dbMoment);
 
       expect(selectSale).toHaveBeenCalledWith('moment-uuid');
       expect(convertDatabaseSaleToApi).toHaveBeenCalledWith(dbSale);
-      expect(getInProcessSoldOut).toHaveBeenCalledWith(moment);
       expect(getInProcessMomentInfo).not.toHaveBeenCalled();
       expect(result.saleConfig).toEqual(mockSaleConfig);
     });
@@ -85,7 +84,6 @@ describe('resolveMomentFromDb', () => {
       vi.mocked(selectSale).mockResolvedValue(null);
       vi.mocked(getInProcessMomentInfo).mockResolvedValue({
         saleConfig: {},
-        soldOut: false,
         owner: CREATOR,
         tokenUri: 'ar://metadata-hash',
       } as any);
@@ -95,42 +93,44 @@ describe('resolveMomentFromDb', () => {
 
       expect(getInProcessMomentInfo).toHaveBeenCalledWith(moment);
       expect(convertDatabaseSaleToApi).not.toHaveBeenCalled();
-      expect(getInProcessSoldOut).not.toHaveBeenCalled();
       expect(result.saleConfig).toEqual(mockSaleConfig);
     });
 
-    it('returns soldOut from getInProcessSoldOut when DB sale exists', async () => {
+    it('returns soldOut from max_supply and total_minted', async () => {
       vi.mocked(selectSale).mockResolvedValue({ id: 'sale-1' } as any);
       vi.mocked(convertDatabaseSaleToApi).mockReturnValue(
         mockSaleConfig as any
       );
-      vi.mocked(getInProcessSoldOut).mockResolvedValue(true);
 
-      const result = await resolveMomentFromDb(moment, dbMoment);
+      const result = await resolveMomentFromDb(
+        moment,
+        makeDbMoment('in_process', { max_supply: 10, total_minted: 10 })
+      );
 
       expect(result.soldOut).toBe(true);
     });
 
-    it('returns soldOut from getInProcessMomentInfo when no DB sale', async () => {
+    it('returns soldOut false when supply remains', async () => {
       vi.mocked(selectSale).mockResolvedValue(null);
       vi.mocked(getInProcessMomentInfo).mockResolvedValue({
         saleConfig: {},
-        soldOut: true,
         owner: CREATOR,
         tokenUri: 'ar://metadata-hash',
       } as any);
       vi.mocked(convertOnChainSaleToApi).mockReturnValue(mockSaleConfig as any);
 
-      const result = await resolveMomentFromDb(moment, dbMoment);
+      const result = await resolveMomentFromDb(
+        moment,
+        makeDbMoment('in_process', { max_supply: 10, total_minted: 3 })
+      );
 
-      expect(result.soldOut).toBe(true);
+      expect(result.soldOut).toBe(false);
     });
 
     it('returns id, uri, owner from dbMoment', async () => {
       vi.mocked(selectSale).mockResolvedValue(null);
       vi.mocked(getInProcessMomentInfo).mockResolvedValue({
         saleConfig: {},
-        soldOut: false,
         owner: CREATOR,
         tokenUri: 'ar://metadata-hash',
       } as any);
@@ -152,7 +152,6 @@ describe('resolveMomentFromDb', () => {
 
       expect(selectSale).not.toHaveBeenCalled();
       expect(getInProcessMomentInfo).not.toHaveBeenCalled();
-      expect(getInProcessSoldOut).not.toHaveBeenCalled();
       expect(convertDatabaseSaleToApi).not.toHaveBeenCalled();
       expect(result.saleConfig).toBeNull();
       expect(result.soldOut).toBe(false);
@@ -175,7 +174,6 @@ describe('resolveMomentFromDb', () => {
 
       expect(selectSale).not.toHaveBeenCalled();
       expect(getInProcessMomentInfo).not.toHaveBeenCalled();
-      expect(getInProcessSoldOut).not.toHaveBeenCalled();
       expect(convertDatabaseSaleToApi).not.toHaveBeenCalled();
       expect(result.saleConfig).toBeNull();
       expect(result.soldOut).toBe(false);

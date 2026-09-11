@@ -3,7 +3,7 @@ import selectSale from '@/lib/supabase/in_process_sales/selectSale';
 import { convertDatabaseSaleToApi } from '@/lib/sales/convertDatabaseSaleToApi';
 import { convertOnChainSaleToApi } from '@/lib/sales/convertOnChainSaleToApi';
 import getInProcessMomentInfo from '@/lib/viem/getInProcessMomentInfo';
-import getInProcessSoldOut from '@/lib/viem/getInProcessSoldOut';
+import isDbMomentSoldOut from '@/lib/moment/isDbMomentSoldOut';
 import selectMoments, {
   type MomentWithCollection,
 } from '@/lib/supabase/in_process_moments/selectMoments';
@@ -16,18 +16,21 @@ const resolveMomentFromDb = async (
 ): Promise<MomentAdvancedInfo> => {
   const protocol = dbMoment.collection.protocol;
   const isInProcess = protocol === 'in_process';
+  const soldOut = isInProcess
+    ? isDbMomentSoldOut({
+        max_supply: dbMoment.max_supply,
+        total_minted: dbMoment.total_minted,
+      })
+    : false;
 
   let saleConfig = null;
-  let soldOut = false;
   if (isInProcess) {
     const sale = await selectSale(dbMoment.id);
     if (sale) {
       saleConfig = convertDatabaseSaleToApi(sale);
-      soldOut = await getInProcessSoldOut(moment);
     } else {
       const info = await getInProcessMomentInfo(moment);
       saleConfig = convertOnChainSaleToApi(info.saleConfig);
-      soldOut = info.soldOut;
     }
   }
 
