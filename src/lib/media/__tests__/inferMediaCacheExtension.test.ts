@@ -9,9 +9,9 @@ describe('inferMediaCacheExtension', () => {
 
   it('reads extension from the uri when content type is missing', () => {
     expect(inferMediaCacheExtension('https://x.test/file.MOV')).toBe('mov');
-    expect(inferMediaCacheExtension('https://x.test/a/b/video.webm?sig=1')).toBe(
-      'webm'
-    );
+    expect(
+      inferMediaCacheExtension('https://x.test/a/b/video.webm?sig=1')
+    ).toBe('webm');
   });
 
   it('returns fallback when uri and content type are unknown', () => {

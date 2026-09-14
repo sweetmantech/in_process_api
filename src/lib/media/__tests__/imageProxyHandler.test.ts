@@ -181,7 +181,10 @@ describe('imageProxyHandler', () => {
 
     vi.mocked(fetchUri).mockResolvedValue({
       ok: true,
-      arrayBuffer: () => Promise.resolve(ico.buffer.slice(ico.byteOffset, ico.byteOffset + ico.byteLength)),
+      arrayBuffer: () =>
+        Promise.resolve(
+          ico.buffer.slice(ico.byteOffset, ico.byteOffset + ico.byteLength)
+        ),
     } as Response);
 
     const result = await imageProxyHandler({

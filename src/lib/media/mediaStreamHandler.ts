@@ -41,7 +41,10 @@ const mediaStreamHandler = async ({
   rangeHeader,
 }: MediaStreamHandlerInput) => {
   const hash = buildMediaCacheHash([uri]);
-  const path = buildMediaCachePath(hash, inferMediaCacheExtension(uri, null, 'mp4'));
+  const path = buildMediaCachePath(
+    hash,
+    inferMediaCacheExtension(uri, null, 'mp4')
+  );
   const cachedUrl = await resolveMediaCacheUrl(path);
   if (cachedUrl) {
     return NextResponse.redirect(cachedUrl, {

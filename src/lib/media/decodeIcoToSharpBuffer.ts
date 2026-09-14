@@ -2,9 +2,7 @@ const decodeIcoToSharpBuffer = (buffer: Buffer): Buffer => {
   const imageCount = buffer.readUInt16LE(4);
   if (imageCount === 0) throw new Error('ICO contains no images');
 
-  let best:
-    | { area: number; offset: number; bytesInRes: number }
-    | undefined;
+  let best: { area: number; offset: number; bytesInRes: number } | undefined;
 
   for (let index = 0; index < imageCount; index += 1) {
     const entryOffset = 6 + index * 16;
