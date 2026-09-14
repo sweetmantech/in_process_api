@@ -2,6 +2,7 @@ import { Chat } from 'chat';
 import { createTelegramAdapter } from '@chat-adapter/telegram';
 import { createRedisState } from '@chat-adapter/state-redis';
 import { validateTelegramChatEnv } from './validateEnv';
+import { registerChatBotCommands } from './registerChatBotCommands';
 
 export function createTelegramChatBot() {
   validateTelegramChatEnv();
@@ -38,6 +39,13 @@ export function createTelegramChatBot() {
 export type { TelegramChatBot } from '@/types/telegram';
 
 const { bot: telegramChatBot, telegramAdapter } = createTelegramChatBot();
+
+// The chat SDK's Telegram adapter has no concept of registered slash
+// commands, so Telegram never shows the persistent menu button unless we
+// tell it to via the raw bot API client. Runs once per cold start.
+registerChatBotCommands().catch((error) => {
+  console.error('Failed to register Telegram chat bot commands:', error);
+});
 
 export { telegramAdapter };
 export default telegramChatBot;
