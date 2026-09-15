@@ -76,7 +76,9 @@ describe('recordCollectComment', () => {
   });
 
   it('ignores a MintComment log for a different token', async () => {
-    mockParseEventLogs.mockReturnValue([mintCommentLog({ tokenId: 2n }) as any]);
+    mockParseEventLogs.mockReturnValue([
+      mintCommentLog({ tokenId: 2n }) as any,
+    ]);
 
     await recordCollectComment(baseParams);
 
