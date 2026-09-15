@@ -6,7 +6,7 @@ type CommentInsert =
 
 export async function upsertComments(
   comments: Array<CommentInsert>,
-  onConflict: 'artist_address,commented_at,moment' | 'comment_id'
+  onConflict: 'moment,transaction_hash,log_index' | 'comment_id'
 ): Promise<void> {
   if (!comments.length) return;
   const { error } = await supabase

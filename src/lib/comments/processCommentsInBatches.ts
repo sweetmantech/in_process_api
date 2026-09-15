@@ -19,7 +19,7 @@ export async function processCommentsInBatches(
       const mintComments = mappedComments.filter((c) => !c.comment_id);
 
       await upsertComments(protocolComments, 'comment_id');
-      await upsertComments(mintComments, 'artist_address,commented_at,moment');
+      await upsertComments(mintComments, 'moment,transaction_hash,log_index');
 
       totalProcessed += mappedComments.length;
       console.log(

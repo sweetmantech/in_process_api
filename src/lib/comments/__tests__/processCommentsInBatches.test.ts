@@ -26,6 +26,7 @@ const comment = {
   chain_id: 8453,
   commented_at: 1000,
   transaction_hash: '0xtx',
+  log_index: 2,
 };
 
 describe('processCommentsInBatches', () => {
@@ -41,13 +42,15 @@ describe('processCommentsInBatches', () => {
     expect(mockUpsert).not.toHaveBeenCalled();
   });
 
-  it('maps, ensures artists and upserts mint comments by artist/time/moment', async () => {
+  it('maps, ensures artists and upserts mint comments by moment/tx_hash/log_index', async () => {
     const mapped = [
       {
         moment: 'mid',
         artist_address: '0xabc',
         comment: 'hi',
         commented_at: 'ts',
+        transaction_hash: '0xtx',
+        log_index: 2,
       },
     ];
     mockMap.mockResolvedValue(mapped);
@@ -58,7 +61,7 @@ describe('processCommentsInBatches', () => {
     expect(mockUpsert).toHaveBeenCalledWith([], 'comment_id');
     expect(mockUpsert).toHaveBeenCalledWith(
       mapped,
-      'artist_address,commented_at,moment'
+      'moment,transaction_hash,log_index'
     );
   });
 
@@ -70,6 +73,8 @@ describe('processCommentsInBatches', () => {
         comment: 'hi',
         commented_at: 'ts',
         comment_id: '0xcid',
+        transaction_hash: '0xtx',
+        log_index: 2,
       },
     ];
     mockMap.mockResolvedValue(mapped);
@@ -79,7 +84,7 @@ describe('processCommentsInBatches', () => {
     expect(mockUpsert).toHaveBeenCalledWith(mapped, 'comment_id');
     expect(mockUpsert).toHaveBeenCalledWith(
       [],
-      'artist_address,commented_at,moment'
+      'moment,transaction_hash,log_index'
     );
   });
 

@@ -30,6 +30,8 @@ export async function mapCommentsToSupabase(
           comment.sparks_quantity === null
             ? null
             : Number(comment.sparks_quantity),
+        transaction_hash: comment.transaction_hash,
+        log_index: comment.log_index,
       });
     }
   }

@@ -50,6 +50,7 @@ export type InProcess_Comments_t = {
   readonly chain_id: number;
   readonly commented_at: number;
   readonly transaction_hash: string;
+  readonly log_index: number;
 };
 
 export type Primary_Sales_t = {
