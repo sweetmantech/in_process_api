@@ -10,10 +10,14 @@ vi.mock('@/lib/coinbase/sendUserOperation', () => ({
 vi.mock('@/lib/viem/getCommentCall', () => ({
   default: vi.fn(),
 }));
+vi.mock('@/lib/comments/recordCommentEagerly', () => ({
+  recordCommentEagerly: vi.fn(),
+}));
 
 import { getCommenterSmartAccount } from '@/lib/coinbase/getCommenterSmartAccount';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
 import getCommentCall from '@/lib/viem/getCommentCall';
+import { recordCommentEagerly } from '@/lib/comments/recordCommentEagerly';
 import { createComment } from '../createComment';
 
 const COLLECTION = '0x1111111111111111111111111111111111111111' as const;
@@ -40,6 +44,7 @@ describe('createComment', () => {
     } as any);
     vi.mocked(sendUserOperation).mockResolvedValue({
       transactionHash: TX_HASH,
+      logs: [],
     } as any);
   });
 
@@ -68,6 +73,24 @@ describe('createComment', () => {
       })
     );
     expect(result.hash).toBe(TX_HASH);
+  });
+
+  it('records the comment eagerly ahead of the async indexer', async () => {
+    await createComment({
+      artist,
+      collection: { address: COLLECTION, chainId: 8453 },
+      tokenId: '1',
+      text: 'hello',
+    });
+
+    expect(recordCommentEagerly).toHaveBeenCalledWith({
+      logs: [],
+      chainId: 8453,
+      collectionAddress: COLLECTION,
+      tokenId: '1',
+      sender: artist.primaryWallet,
+      text: 'hello',
+    });
   });
 
   it('passes replyTo through when moment identifiers match', async () => {
