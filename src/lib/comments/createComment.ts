@@ -4,6 +4,7 @@ import { CHAIN_ID, IS_TESTNET } from '@/lib/consts';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
 import { getCommenterSmartAccount } from '@/lib/coinbase/getCommenterSmartAccount';
 import getCommentCall from '@/lib/viem/getCommentCall';
+import { recordCommentEagerly } from './recordCommentEagerly';
 import type { AuthResult } from '@/types/auth';
 
 export type CreateCommentInput = {
@@ -56,6 +57,16 @@ export async function createComment({
     smartAccount,
     network: IS_TESTNET ? 'base-sepolia' : 'base',
     calls: [commentCall] as OneOf<Call<unknown, { [key: string]: unknown }>>[],
+  });
+
+  // Reflect the comment in Supabase right away, ahead of the async chain indexer.
+  await recordCommentEagerly({
+    logs: transaction.logs ?? [],
+    chainId: collection.chainId,
+    collectionAddress: collection.address,
+    tokenId,
+    sender: artist.primaryWallet,
+    text,
   });
 
   return {

@@ -8,6 +8,8 @@ import getCollectCall from '../viem/getCollectCall';
 import { validateBalanceAndAllowance } from '@/lib/sales/validateBalanceAndAllowance';
 import { Call } from '@coinbase/coinbase-sdk/dist/types/calls';
 import { resolveMomentInfo } from './resolveMomentInfo';
+import { recordCollectTransfer } from './recordCollectTransfer';
+import { recordCollectComment } from './recordCollectComment';
 
 export type CollectMomentInput = z.infer<typeof collectSchema> & {
   artistId: string;
@@ -33,7 +35,7 @@ export async function collectMoment({
   const smartAccount = await getArtistSmartAccount({ artistId });
 
   // Get token info and sale config
-  const { saleConfig } = await resolveMomentInfo(moment);
+  const { saleConfig, id: momentId } = await resolveMomentInfo(moment);
 
   if (!saleConfig) {
     throw new Error('Sale config not found');
@@ -64,6 +66,23 @@ export async function collectMoment({
     smartAccount,
     network: IS_TESTNET ? 'base-sepolia' : 'base',
     calls,
+  });
+
+  // Reflect the mint (and any inline comment) in Supabase right away, ahead
+  // of the async chain indexer.
+  await recordCollectTransfer({
+    momentId,
+    recipient: primaryWallet,
+    quantity: amount,
+    transactionHash: transaction.transactionHash as Hash,
+  });
+  await recordCollectComment({
+    momentId,
+    logs: transaction.logs,
+    collectionAddress: moment.collectionAddress,
+    tokenId: moment.tokenId,
+    sender: primaryWallet,
+    comment,
   });
 
   return {
