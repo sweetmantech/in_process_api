@@ -395,10 +395,12 @@ export type Database = {
           comment_id: string | null;
           commented_at: string;
           id: string;
+          log_index: number | null;
           moment: string;
           nonce: string | null;
           reply_to_id: string | null;
           sparks_quantity: number | null;
+          transaction_hash: string | null;
         };
         Insert: {
           artist_address: string;
@@ -406,10 +408,12 @@ export type Database = {
           comment_id?: string | null;
           commented_at?: string;
           id?: string;
+          log_index?: number | null;
           moment: string;
           nonce?: string | null;
           reply_to_id?: string | null;
           sparks_quantity?: number | null;
+          transaction_hash?: string | null;
         };
         Update: {
           artist_address?: string;
@@ -417,10 +421,12 @@ export type Database = {
           comment_id?: string | null;
           commented_at?: string;
           id?: string;
+          log_index?: number | null;
           moment?: string;
           nonce?: string | null;
           reply_to_id?: string | null;
           sparks_quantity?: number | null;
+          transaction_hash?: string | null;
         };
         Relationships: [
           {

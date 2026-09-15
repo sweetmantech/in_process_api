@@ -16,6 +16,7 @@ const comment = {
   chain_id: 8453,
   commented_at: 1700000000,
   transaction_hash: '0xtx',
+  log_index: 3,
 };
 
 describe('mapCommentsToSupabase', () => {
@@ -41,6 +42,8 @@ describe('mapCommentsToSupabase', () => {
         reply_to_id: null,
         nonce: null,
         sparks_quantity: null,
+        transaction_hash: '0xtx',
+        log_index: 3,
       },
     ]);
   });

@@ -9,6 +9,6 @@ export const commentsIndexer: IndexConfig<InProcess_Comments_t> = {
   indexName: 'comments',
   dataPath: 'InProcess_Comments',
   queryFragment: `InProcess_Comments(limit: $limit, offset: $offset_comments, order_by: {commented_at: asc}, where: {commented_at: {_gt: $minTimestamp_comments}}) {
-    id collection sender token_id comment comment_id reply_to_id nonce sparks_quantity chain_id commented_at transaction_hash
+    id collection sender token_id comment comment_id reply_to_id nonce sparks_quantity chain_id commented_at transaction_hash log_index
   }`,
 };
