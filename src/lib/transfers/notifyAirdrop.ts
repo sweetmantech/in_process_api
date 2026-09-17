@@ -16,7 +16,7 @@ const notifyAirdrop = async (batch: Transfers_t[]): Promise<void> => {
       if (!wallets.length) continue;
 
       const data = await selectAccountNotification({ wallets });
-      if (!data) continue;
+      if (!data?.notify_enabled) continue;
 
       const { address, username } = await getAirdropOperator(t);
 
