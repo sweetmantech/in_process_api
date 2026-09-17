@@ -59,6 +59,7 @@ beforeEach(() => {
     } as never);
   vi.mocked(selectAccountNotification).mockResolvedValue({
     telegram_chat_id: CHAT_ID,
+    notify_enabled: true,
   } as any);
   vi.mocked(getAirdropOperator).mockResolvedValue({
     address: SENDER,
@@ -89,6 +90,15 @@ describe('notifyAirdrop', () => {
 
   it('skips notification when artist has no notification settings', async () => {
     vi.mocked(selectAccountNotification).mockResolvedValue(null);
+    await notifyAirdrop([makeTransfer()]);
+    expect(telegramChatBotClient.sendMessage).not.toHaveBeenCalled();
+  });
+
+  it('skips notification when notify is disabled', async () => {
+    vi.mocked(selectAccountNotification).mockResolvedValue({
+      telegram_chat_id: CHAT_ID,
+      notify_enabled: false,
+    } as any);
     await notifyAirdrop([makeTransfer()]);
     expect(telegramChatBotClient.sendMessage).not.toHaveBeenCalled();
   });
