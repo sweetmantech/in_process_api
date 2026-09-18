@@ -6,6 +6,7 @@ const makeThread = (stateAdapter: {
   get: ReturnType<typeof vi.fn>;
   set?: ReturnType<typeof vi.fn>;
 }) => ({
+  id: 'telegram:chat-abc',
   channelId: 'telegram:chat-abc',
   _stateAdapter: stateAdapter,
 });
@@ -24,7 +25,7 @@ describe('getOrCreateUngroupedBurstId', () => {
 
     expect(burstId).toContain('telegram:chat-abc');
     expect(setIfNotExists).toHaveBeenCalledWith(
-      'ungrouped_burst:telegram:chat-abc',
+      'telegram:chat-abc:ungrouped_burst:telegram:chat-abc',
       burstId,
       10_000
     );
@@ -40,9 +41,11 @@ describe('getOrCreateUngroupedBurstId', () => {
     const burstId = await getOrCreateUngroupedBurstId(thread as never);
 
     expect(burstId).toBe('telegram:chat-abc:existing-burst');
-    expect(get).toHaveBeenCalledWith('ungrouped_burst:telegram:chat-abc');
+    expect(get).toHaveBeenCalledWith(
+      'telegram:chat-abc:ungrouped_burst:telegram:chat-abc'
+    );
     expect(set).toHaveBeenCalledWith(
-      'ungrouped_burst:telegram:chat-abc',
+      'telegram:chat-abc:ungrouped_burst:telegram:chat-abc',
       'telegram:chat-abc:existing-burst',
       10_000
     );

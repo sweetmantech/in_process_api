@@ -26,6 +26,7 @@ const makeEvent = (
     userName?: string | null;
     thread?: {
       post: ReturnType<typeof vi.fn>;
+      id: string;
       channelId: string;
       _stateAdapter: { set: ReturnType<typeof vi.fn> };
     } | null;
@@ -36,7 +37,12 @@ const makeEvent = (
   return {
     value: COL_ADDRESS,
     user: { userName: 'u1' },
-    thread: { post, channelId: 'telegram:1', _stateAdapter: { set } },
+    thread: {
+      post,
+      id: 'telegram:1',
+      channelId: 'telegram:1',
+      _stateAdapter: { set },
+    },
     ...overrides,
   };
 };
@@ -63,8 +69,9 @@ describe('registerOnCollectionSelect', () => {
 
     const normalized = getAddress(COL_ADDRESS);
     expect(event.thread?._stateAdapter.set).toHaveBeenCalledWith(
-      'selected_collection_address',
-      normalized
+      'telegram:1:selected_collection_address',
+      normalized,
+      undefined
     );
     const text = `Next moment will be created in this collection:\n\`${normalized}\`\n\nSend a photo, video, YouTube link, or plain text to create.`;
     expect(event.thread?.post).toHaveBeenCalledWith(
