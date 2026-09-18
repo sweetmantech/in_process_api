@@ -16,8 +16,9 @@ import createMomentsFromGroup from '@/lib/telegram/chat/moment/createMomentsFrom
 import postMomentPending from '@/lib/telegram/chat/moment/postMomentPending';
 
 const MEDIA_GROUP_ID = 'group-1';
-const ACTIVITY_KEY = `media_group_activity:${MEDIA_GROUP_ID}`;
-const PROCESSED_KEY = `media_group_processed:${MEDIA_GROUP_ID}`;
+const THREAD_ID = 'thread-1';
+const ACTIVITY_KEY = `${THREAD_ID}:media_group_activity:${MEDIA_GROUP_ID}`;
+const PROCESSED_KEY = `${THREAD_ID}:media_group_processed:${MEDIA_GROUP_ID}`;
 
 const ATTACHMENT = { type: 'image' as const, mimeType: 'image/jpeg' };
 const ARTIST = { primaryWallet: '0xabc' };
@@ -32,6 +33,7 @@ const makeStateAdapter = () => ({
 const makeThread = (stateAdapter: ReturnType<typeof makeStateAdapter>) => ({
   post: vi.fn().mockResolvedValue(undefined),
   _stateAdapter: stateAdapter,
+  id: THREAD_ID,
 });
 
 beforeEach(() => {
@@ -122,7 +124,7 @@ describe('processGroupMedia', () => {
   it('posts the pending message only for the first attachment in the group', async () => {
     const stateAdapter = makeStateAdapter();
     stateAdapter.setIfNotExists.mockImplementation(async (key: string) => {
-      if (key === `media_group:${MEDIA_GROUP_ID}`) return false;
+      if (key === `${THREAD_ID}:media_group:${MEDIA_GROUP_ID}`) return false;
       return true;
     });
     const thread = makeThread(stateAdapter);

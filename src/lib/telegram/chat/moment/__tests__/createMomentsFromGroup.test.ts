@@ -72,6 +72,7 @@ const makeStateAdapter = (assets: unknown[] = []) => ({
 const makeThread = (stateAdapter = makeStateAdapter()) => ({
   startTyping: vi.fn().mockResolvedValue(undefined),
   _stateAdapter: stateAdapter,
+  id: 'telegram:chat-xyz',
   channelId: 'telegram:chat-xyz',
 });
 
@@ -214,7 +215,7 @@ describe('createMomentsFromGroup', () => {
       })
     );
     expect(stateAdapter.delete).toHaveBeenCalledWith(
-      'selected_collection_address'
+      'telegram:chat-xyz:selected_collection_address'
     );
   });
 
