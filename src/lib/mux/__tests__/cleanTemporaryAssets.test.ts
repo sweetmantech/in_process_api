@@ -12,10 +12,16 @@ vi.mock('@/lib/mux', () => ({
   },
 }));
 
+vi.mock('../getReferencedMuxPlaybackIds', () => ({
+  default: vi.fn(async () => new Set<string>()),
+}));
+
 import mux from '@/lib/mux';
+import getReferencedMuxPlaybackIds from '../getReferencedMuxPlaybackIds';
 
 const mockList = vi.mocked(mux.video.assets.list);
 const mockDelete = vi.mocked(mux.video.assets.delete);
+const mockGetReferencedMuxPlaybackIds = vi.mocked(getReferencedMuxPlaybackIds);
 
 const nowEpoch = 1_700_000_000_000;
 const ONE_HOUR_MS = 60 * 60 * 1000;
@@ -85,5 +91,44 @@ describe('cleanTemporaryAssets', () => {
     });
 
     await expect(cleanTemporaryAssets()).resolves.toBeUndefined();
+  });
+
+  it('does not delete an old asset still referenced by unmigrated moment metadata', async () => {
+    mockGetReferencedMuxPlaybackIds.mockResolvedValue(
+      new Set(['referenced-playback-id'])
+    );
+    mockList.mockReturnValue(
+      makeAsyncIterable([
+        {
+          id: 'old-but-referenced-asset',
+          created_at: makeAssetTs(-ONE_HOUR_MS - 1),
+          playback_ids: [{ id: 'referenced-playback-id', policy: 'public' }],
+        },
+      ]) as any
+    );
+
+    await cleanTemporaryAssets();
+
+    expect(mockDelete).not.toHaveBeenCalled();
+  });
+
+  it('deletes an old asset whose playback id is not referenced', async () => {
+    mockGetReferencedMuxPlaybackIds.mockResolvedValue(
+      new Set(['some-other-playback-id'])
+    );
+    mockList.mockReturnValue(
+      makeAsyncIterable([
+        {
+          id: 'old-unreferenced-asset',
+          created_at: makeAssetTs(-ONE_HOUR_MS - 1),
+          playback_ids: [{ id: 'unreferenced-playback-id', policy: 'public' }],
+        },
+      ]) as any
+    );
+    mockDelete.mockResolvedValue(undefined as any);
+
+    await cleanTemporaryAssets();
+
+    expect(mockDelete).toHaveBeenCalledWith('old-unreferenced-asset');
   });
 });
