@@ -1,6 +1,7 @@
 import { LinkPreview } from '@/types/link';
 import getYoutubeDetail from './getYoutubeDetail';
 import getTiktokDetail from './getTiktokDetail';
+import getInstagramDetail from './getInstagramDetail';
 import getGenericLinkDetail from './getGenericLinkDetail';
 
 /**
@@ -15,6 +16,10 @@ async function getDetail(url: string): Promise<LinkPreview> {
   // Try TikTok second
   const tiktokDetail = await getTiktokDetail(url);
   if (tiktokDetail) return tiktokDetail;
+
+  // Try Instagram third (requires APIFY_TOKEN; falls through if unset)
+  const instagramDetail = await getInstagramDetail(url);
+  if (instagramDetail) return instagramDetail;
 
   // Fallback to generic link preview
   return await getGenericLinkDetail(url);

@@ -102,3 +102,5 @@ export const COMMENTS_ADDRESS: Record<number, Address> = {
 export const IN_PROCESS_COMMENTER_ACCOUNT_NAME = 'in-process-commenter';
 
 export const SUPABASE_STORAGE_BUCKET = 'in_process_files';
+
+export const APIFY_INSTAGRAM_ACTOR = 'apify~instagram-post-scraper';
