@@ -2,8 +2,10 @@ import { sleep } from 'workflow';
 import { start } from 'workflow/api';
 import { Address } from 'viem';
 import fetchMetadataStep from './steps/fetchMetadataStep';
+import fetchCarouselContentStep from './steps/fetchCarouselContentStep';
 import downloadAndUploadStep from './steps/downloadAndUploadStep';
 import uploadMigratedMetadataStep from './steps/uploadMigratedMetadataStep';
+import uploadMigratedCarouselStep from './steps/uploadMigratedCarouselStep';
 import updateOnChainStep from './steps/updateOnChainStep';
 import deleteMuxAssetStep from './steps/deleteMuxAssetStep';
 import deleteSupabaseFilesStep from './steps/deleteSupabaseFilesStep';
@@ -11,6 +13,7 @@ import getOnChainUriStep from './steps/getOnChainUriStep';
 import waitMuxMp4ReadyStep from './steps/waitMuxMp4ReadyStep';
 import getMigrationTargets from '@/lib/arweave/getMigrationTargets';
 import buildUrlMapFromResults from '@/lib/arweave/buildUrlMapFromResults';
+import { INSTAGRAM_CAROUSEL_MIME } from '@/lib/consts';
 
 export interface MigrateAssetToArweavePayload {
   artistAddress: Address;
@@ -24,8 +27,16 @@ async function migrateAssetToArweave(p: MigrateAssetToArweavePayload) {
   const { moment, artistAddress, uri } = p;
   const metadata = await fetchMetadataStep(uri);
 
-  const { downloadCandidates, hlsAnimationUrl, hasTargets } =
-    getMigrationTargets(metadata);
+  const isCarousel = metadata.content?.mime === INSTAGRAM_CAROUSEL_MIME;
+  const carouselItems =
+    isCarousel && metadata.content?.uri
+      ? await fetchCarouselContentStep(metadata.content.uri)
+      : undefined;
+
+  const { downloadCandidates, hlsAnimationUrl, hasTargets } = getMigrationTargets(
+    metadata,
+    carouselItems
+  );
 
   if (!hasTargets) {
     return { success: true, skipped: true, tokenId: moment.tokenId };
@@ -52,10 +63,23 @@ async function migrateAssetToArweave(p: MigrateAssetToArweavePayload) {
     hlsAnimationUrl
   );
 
-  const metadataUri = await uploadMigratedMetadataStep(metadata, urlMap);
+  const carouselUri =
+    isCarousel && carouselItems
+      ? await uploadMigratedCarouselStep(carouselItems, urlMap)
+      : undefined;
+
+  const metadataUri = await uploadMigratedMetadataStep(
+    metadata,
+    urlMap,
+    carouselUri
+  );
 
   const supabaseUrls = [
-    ...new Set([uri, ...downloadCandidates.map((c) => c.value)]),
+    ...new Set([
+      uri,
+      ...(isCarousel && metadata.content?.uri ? [metadata.content.uri] : []),
+      ...downloadCandidates.map((c) => c.value),
+    ]),
   ];
 
   await sleep(hlsAnimationUrl ? '10 minutes' : '5 minutes');
