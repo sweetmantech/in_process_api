@@ -40,6 +40,9 @@ const getInstagramDetail = async (url: string): Promise<LinkPreview | null> => {
         : 'Instagram post',
       description: item.caption || '',
       url: item.url || url,
+      // Carousel (Sidecar) posts only — lets callers re-host every slide
+      // (including video files, which `images` above doesn't carry).
+      carouselItems: item.childPosts?.length ? item.childPosts : undefined,
     };
   } catch (error) {
     console.error('Error fetching Instagram detail:', error);
