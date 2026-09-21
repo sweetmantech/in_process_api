@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
+import getBlob from '@/lib/getBlob';
 import uploadFileToSupabase from '@/lib/supabase/storage/uploadFileToSupabase';
 
 export interface UploadedRemoteFile {
@@ -12,18 +13,11 @@ export interface UploadedRemoteFile {
 const uploadRemoteFileToSupabase = async (
   remoteUrl: string
 ): Promise<UploadedRemoteFile> => {
-  const response = await fetch(remoteUrl);
-  if (!response.ok) {
-    throw new Error(`Failed to download ${remoteUrl}: ${response.status}`);
-  }
-
-  const mime =
-    response.headers.get('content-type') || 'application/octet-stream';
-  const buffer = Buffer.from(await response.arrayBuffer());
-  const file = new File([buffer], uuidv4(), { type: mime });
+  const { blob, type } = await getBlob(remoteUrl);
+  const file = new File([blob], uuidv4(), { type });
 
   const url = await uploadFileToSupabase(file);
-  return { url, mime };
+  return { url, mime: type };
 };
 
 export default uploadRemoteFileToSupabase;
