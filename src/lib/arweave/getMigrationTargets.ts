@@ -1,6 +1,5 @@
 import { TokenMetadataJson } from '@/lib/protocolSdk/ipfs/types';
-import { CarouselItem } from '@/types/carousel';
-import { INSTAGRAM_CAROUSEL_MIME } from '@/lib/consts';
+import { CarouselItem, INSTAGRAM_CAROUSEL_MIME } from '@/types/carousel';
 import { isNonPermanentUri } from './isNonPermanentUri';
 
 export interface MigrationCandidate {

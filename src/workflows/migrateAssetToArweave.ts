@@ -13,7 +13,7 @@ import getOnChainUriStep from './steps/getOnChainUriStep';
 import waitMuxMp4ReadyStep from './steps/waitMuxMp4ReadyStep';
 import getMigrationTargets from '@/lib/arweave/getMigrationTargets';
 import buildUrlMapFromResults from '@/lib/arweave/buildUrlMapFromResults';
-import { INSTAGRAM_CAROUSEL_MIME } from '@/lib/consts';
+import { INSTAGRAM_CAROUSEL_MIME } from '@/types/carousel';
 
 export interface MigrateAssetToArweavePayload {
   artistAddress: Address;
