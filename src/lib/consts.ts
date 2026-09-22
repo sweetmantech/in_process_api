@@ -104,7 +104,3 @@ export const IN_PROCESS_COMMENTER_ACCOUNT_NAME = 'in-process-commenter';
 export const SUPABASE_STORAGE_BUCKET = 'in_process_files';
 
 export const APIFY_INSTAGRAM_ACTOR = 'apify~instagram-post-scraper';
-
-/** content.mime for an Instagram carousel moment — content.uri points to a
- * CarouselItem[] JSON manifest instead of a single media file. */
-export const INSTAGRAM_CAROUSEL_MIME = 'application/vnd.inprocess.carousel+json';
