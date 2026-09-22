@@ -104,7 +104,3 @@ export const IN_PROCESS_COMMENTER_ACCOUNT_NAME = 'in-process-commenter';
 export const SUPABASE_STORAGE_BUCKET = 'in_process_files';
 
 export const APIFY_INSTAGRAM_ACTOR = 'apify~instagram-post-scraper';
-
-// INSTAGRAM_CAROUSEL_MIME lives in @/types/carousel, not here — see that
-// file's comment (this module's top-level Buffer usage crashes when pulled
-// into the Workflow SDK's sandboxed bundle via migrateAssetToArweave.ts).
