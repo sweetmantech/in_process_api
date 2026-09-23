@@ -54,6 +54,7 @@ const notifyAirdrop = async (batch: Transfers_t[]): Promise<void> => {
             `when     : ${when}\n` +
             `token    : ${formatTokenReference(t)}\n` +
             `tx       : ${getExplorerTxUrl(t.chain_id, t.transaction_hash)}\n` +
+            `link     : ${getCollectUrl(t)}\n` +
             `note     : possible smart wallet ↔ artist link gap`
         );
         continue;
@@ -76,7 +77,8 @@ const notifyAirdrop = async (batch: Transfers_t[]): Promise<void> => {
             `${headline}\n\n` +
             `when     : ${when}\n` +
             `token    : ${formatTokenReference(t)}\n` +
-            `tx       : ${getExplorerTxUrl(t.chain_id, t.transaction_hash)}`
+            `tx       : ${getExplorerTxUrl(t.chain_id, t.transaction_hash)}\n` +
+            `link     : ${getCollectUrl(t)}`
         );
         continue;
       }
@@ -102,6 +104,7 @@ const notifyAirdrop = async (batch: Transfers_t[]): Promise<void> => {
           `recipient : ${formatWalletIdentity(recipient)}\n\n` +
           `when     : ${when}\n` +
           `token    : ${formatTokenReference(t)}\n` +
+          `link     : ${getCollectUrl(t)}\n` +
           `error    : ${msg}`
       );
     }
