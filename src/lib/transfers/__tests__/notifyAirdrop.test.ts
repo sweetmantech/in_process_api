@@ -49,6 +49,8 @@ const makeTransfer = (overrides: Partial<Transfers_t> = {}): Transfers_t =>
     chain_id: 8453,
     value: null,
     currency: null,
+    transaction_hash: '0xtxhash',
+    transferred_at: 1757352201, // 2025-09-08T17:23:21Z
     ...overrides,
   }) as Transfers_t;
 
@@ -62,6 +64,15 @@ beforeEach(() => {
       data: [
         { address: RECIPIENT, artist_id: ARTIST_ID },
         { address: EXTERNAL, artist_id: ARTIST_ID },
+      ],
+    } as never)
+    .mockResolvedValue({
+      data: [
+        {
+          address: RECIPIENT,
+          artist_id: ARTIST_ID,
+          artist: { username: 'cxy' },
+        },
       ],
     } as never);
   vi.mocked(selectAccountNotification).mockResolvedValue({
@@ -172,7 +183,7 @@ describe('notifyAirdrop', () => {
     );
     expect(postWatchDogMessage).toHaveBeenCalledWith(
       WATCH_DOG_CHAT_ID,
-      expect.stringContaining('Airdrop notify sent')
+      expect.stringContaining('AIRDROP NOTIFY SENT')
     );
   });
 
@@ -181,5 +192,18 @@ describe('notifyAirdrop', () => {
     const message = vi.mocked(telegramChatBotClient.sendMessage).mock
       .calls[0][1];
     expect(message).toContain('alice');
+  });
+
+  it('labels the recipient with their artist username in watch-dog messages', async () => {
+    await notifyAirdrop([makeTransfer()]);
+    const watchDogText = vi.mocked(postWatchDogMessage).mock.calls[0][1];
+    const shortRecipient = `${RECIPIENT.slice(0, 10)}...${RECIPIENT.slice(-6)}`;
+    expect(watchDogText).toContain(`cxy (${shortRecipient})`);
+  });
+
+  it('includes a human-readable date at the bottom of every watch-dog message', async () => {
+    await notifyAirdrop([makeTransfer()]);
+    const watchDogText = vi.mocked(postWatchDogMessage).mock.calls[0][1];
+    expect(watchDogText).toContain('date     : 2025-09-08 17:23:21 UTC');
   });
 });
