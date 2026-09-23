@@ -208,4 +208,11 @@ describe('notifyAirdrop', () => {
     const watchDogText = vi.mocked(postWatchDogMessage).mock.calls[0][1];
     expect(watchDogText).toContain('when     : 2025-09-08 17:23:21 UTC');
   });
+
+  it('labels the token/collection/chain instead of printing the raw composite transfer id', async () => {
+    await notifyAirdrop([makeTransfer()]);
+    const watchDogText = vi.mocked(postWatchDogMessage).mock.calls[0][1];
+    expect(watchDogText).toContain('token    : #1 · 0xcoll…tion · chain 8453');
+    expect(watchDogText).not.toContain('transfer-1');
+  });
 });

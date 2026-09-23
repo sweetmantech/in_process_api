@@ -11,6 +11,7 @@ import getAirdropOperator from './getAirdropOperator';
 import isSameArtist from './isSameArtist';
 import getCollectUrl from './getCollectUrl';
 import getMomentTitleForTransfer from './getMomentTitleForTransfer';
+import formatTokenReference from './formatTokenReference';
 
 const watchDog = (text: string) =>
   postWatchDogMessage(process.env.TELEGRAM_WATCH_DOG_CHAT_ID!, text);
@@ -51,7 +52,7 @@ const notifyAirdrop = async (batch: Transfers_t[]): Promise<void> => {
           `🚨 AIRDROP NOTIFY FAILED — operator not found\n\n` +
             `${headline}\n\n` +
             `when     : ${when}\n` +
-            `transfer : ${t.id}\n` +
+            `token    : ${formatTokenReference(t)}\n` +
             `tx       : ${getExplorerTxUrl(t.chain_id, t.transaction_hash)}\n` +
             `note     : possible smart wallet ↔ artist link gap`
         );
@@ -64,7 +65,7 @@ const notifyAirdrop = async (batch: Transfers_t[]): Promise<void> => {
           `ℹ️ AIRDROP NOTIFY SKIPPED — notifications off\n\n` +
             `${headline}\n\n` +
             `when     : ${when}\n` +
-            `transfer : ${t.id}\n` +
+            `token    : ${formatTokenReference(t)}\n` +
             `tx       : ${getExplorerTxUrl(t.chain_id, t.transaction_hash)}`
         );
         continue;
@@ -78,7 +79,7 @@ const notifyAirdrop = async (batch: Transfers_t[]): Promise<void> => {
         `✅ AIRDROP NOTIFY SENT\n\n` +
           `${headline}\n\n` +
           `when     : ${when}\n` +
-          `transfer : ${t.id}\n` +
+          `token    : ${formatTokenReference(t)}\n` +
           `link     : ${getCollectUrl(t)}`
       );
     } catch (e) {
@@ -91,7 +92,7 @@ const notifyAirdrop = async (batch: Transfers_t[]): Promise<void> => {
         `🚨 AIRDROP NOTIFY EXCEPTION\n\n` +
           `recipient : ${formatWalletIdentity(recipient)}\n\n` +
           `when     : ${when}\n` +
-          `transfer : ${t.id}\n` +
+          `token    : ${formatTokenReference(t)}\n` +
           `error    : ${msg}`
       );
     }
