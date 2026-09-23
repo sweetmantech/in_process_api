@@ -59,6 +59,13 @@ const notifyAirdrop = async (batch: Transfers_t[]): Promise<void> => {
         continue;
       }
 
+      // Self-airdrops (an artist posting to their own wallet) are routine
+      // and never need a notification, so this must run before the
+      // notify_enabled check below - otherwise a self-airdrop where the
+      // artist happens to have notifications off/unlinked would incorrectly
+      // surface as an "AIRDROP NOTIFY SKIPPED" alert.
+      if (await isSameArtist(address, recipient)) continue;
+
       const data = await selectAccountNotification({ wallets });
       if (!data || !data.notify_enabled) {
         const reason = data
@@ -74,7 +81,6 @@ const notifyAirdrop = async (batch: Transfers_t[]): Promise<void> => {
         continue;
       }
 
-      if (await isSameArtist(address, recipient)) continue;
       const text = `${username || address} airdropped a moment to you. \n\n${getCollectUrl(t)}`;
 
       await telegramChatBotClient.sendMessage(data.telegram_chat_id, text);
