@@ -183,6 +183,15 @@ describe('notifyAirdrop', () => {
     expect(postWatchDogMessage).not.toHaveBeenCalled();
   });
 
+  it('does not watch-dog a self-airdrop even when the artist has no notification settings (regression: self-check must run before the notify_enabled check)', async () => {
+    vi.mocked(isSameArtist).mockResolvedValue(true);
+    vi.mocked(selectAccountNotification).mockResolvedValue(null);
+    await notifyAirdrop([makeTransfer()]);
+    expect(selectAccountNotification).not.toHaveBeenCalled();
+    expect(telegramChatBotClient.sendMessage).not.toHaveBeenCalled();
+    expect(postWatchDogMessage).not.toHaveBeenCalled();
+  });
+
   it('sends telegram notification with airdrop details and watch-dogs the success with full direction', async () => {
     await notifyAirdrop([makeTransfer()]);
     expect(telegramChatBotClient.sendMessage).toHaveBeenCalledWith(
