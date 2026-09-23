@@ -130,14 +130,13 @@ describe('notifyAirdrop', () => {
     expect(text).toContain(`"${MOMENT_TITLE}"`);
   });
 
-  it('watch-dogs and skips notification when artist has no notification settings', async () => {
+  it('watch-dogs and skips notification, distinguishing "never linked Telegram" from "notifications off"', async () => {
     vi.mocked(selectAccountNotification).mockResolvedValue(null);
     await notifyAirdrop([makeTransfer()]);
     expect(telegramChatBotClient.sendMessage).not.toHaveBeenCalled();
-    expect(postWatchDogMessage).toHaveBeenCalledWith(
-      WATCH_DOG_CHAT_ID,
-      expect.stringContaining('notifications off')
-    );
+    const text = vi.mocked(postWatchDogMessage).mock.calls[0][1];
+    expect(text).toContain('recipient never linked Telegram');
+    expect(text).not.toContain('notifications off');
   });
 
   it('watch-dogs and skips notification when notify is disabled', async () => {
@@ -149,6 +148,7 @@ describe('notifyAirdrop', () => {
     expect(telegramChatBotClient.sendMessage).not.toHaveBeenCalled();
     const text = vi.mocked(postWatchDogMessage).mock.calls[0][1];
     expect(text).toContain('notifications off');
+    expect(text).not.toContain('never linked Telegram');
     expect(text).toContain(`alice (0xsend…0000) airdropped "${MOMENT_TITLE}" to cxy (0xreci…0000)`);
   });
 

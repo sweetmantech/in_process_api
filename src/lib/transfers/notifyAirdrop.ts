@@ -60,9 +60,12 @@ const notifyAirdrop = async (batch: Transfers_t[]): Promise<void> => {
       }
 
       const data = await selectAccountNotification({ wallets });
-      if (!data?.notify_enabled) {
+      if (!data || !data.notify_enabled) {
+        const reason = data
+          ? 'notifications off'
+          : 'recipient never linked Telegram';
         await watchDog(
-          `ℹ️ AIRDROP NOTIFY SKIPPED — notifications off\n\n` +
+          `ℹ️ AIRDROP NOTIFY SKIPPED — ${reason}\n\n` +
             `${headline}\n\n` +
             `when     : ${when}\n` +
             `token    : ${formatTokenReference(t)}\n` +
