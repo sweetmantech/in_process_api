@@ -18,6 +18,7 @@ vi.mock('@/lib/telegram/postWatchDogMessage', () => ({
 }));
 vi.mock('../getAirdropOperator', () => ({ default: vi.fn() }));
 vi.mock('../isSameArtist', () => ({ default: vi.fn() }));
+vi.mock('../getMomentTitleForTransfer', () => ({ default: vi.fn() }));
 vi.mock('@/lib/consts', () => ({
   SHORT_CHAIN_NAME: { 8453: 'base' },
   SITE_ORIGINAL_URL: 'https://inprocess.world',
@@ -29,6 +30,7 @@ import { telegramChatBotClient } from '@/lib/telegram/client';
 import { postWatchDogMessage } from '@/lib/telegram/postWatchDogMessage';
 import getAirdropOperator from '../getAirdropOperator';
 import isSameArtist from '../isSameArtist';
+import getMomentTitleForTransfer from '../getMomentTitleForTransfer';
 import notifyAirdrop from '../notifyAirdrop';
 
 const WATCH_DOG_CHAT_ID = '-5577113678';
@@ -39,6 +41,7 @@ const EXTERNAL = '0xexternal00000000000000000000000000000000';
 const SENDER = '0xsender00000000000000000000000000000000000';
 const ARTIST_ID = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
 const CHAT_ID = '1352384640';
+const MOMENT_TITLE = 'Telegram Demo with CY';
 
 const makeTransfer = (overrides: Partial<Transfers_t> = {}): Transfers_t =>
   ({
@@ -84,6 +87,7 @@ beforeEach(() => {
     username: 'alice',
   });
   vi.mocked(isSameArtist).mockResolvedValue(false);
+  vi.mocked(getMomentTitleForTransfer).mockResolvedValue(MOMENT_TITLE);
   vi.mocked(telegramChatBotClient.sendMessage).mockResolvedValue(
     undefined as never
   );
@@ -103,9 +107,27 @@ describe('notifyAirdrop', () => {
 
     await notifyAirdrop([makeTransfer()]);
 
+    expect(getAirdropOperator).not.toHaveBeenCalled();
     expect(selectAccountNotification).not.toHaveBeenCalled();
     expect(telegramChatBotClient.sendMessage).not.toHaveBeenCalled();
     expect(postWatchDogMessage).not.toHaveBeenCalled();
+  });
+
+  it('watch-dogs and skips notification when the operator cannot be identified, before checking notify settings', async () => {
+    vi.mocked(getAirdropOperator).mockResolvedValue({
+      address: '',
+      username: null,
+    });
+    await notifyAirdrop([makeTransfer()]);
+    expect(selectAccountNotification).not.toHaveBeenCalled();
+    expect(telegramChatBotClient.sendMessage).not.toHaveBeenCalled();
+    expect(postWatchDogMessage).toHaveBeenCalledWith(
+      WATCH_DOG_CHAT_ID,
+      expect.stringContaining('operator not found')
+    );
+    const text = vi.mocked(postWatchDogMessage).mock.calls[0][1];
+    expect(text).toContain('⚠️ unknown sender');
+    expect(text).toContain(`"${MOMENT_TITLE}"`);
   });
 
   it('watch-dogs and skips notification when artist has no notification settings', async () => {
@@ -125,23 +147,9 @@ describe('notifyAirdrop', () => {
     } as any);
     await notifyAirdrop([makeTransfer()]);
     expect(telegramChatBotClient.sendMessage).not.toHaveBeenCalled();
-    expect(postWatchDogMessage).toHaveBeenCalledWith(
-      WATCH_DOG_CHAT_ID,
-      expect.stringContaining('notifications off')
-    );
-  });
-
-  it('watch-dogs and skips notification when the operator cannot be identified', async () => {
-    vi.mocked(getAirdropOperator).mockResolvedValue({
-      address: '',
-      username: null,
-    });
-    await notifyAirdrop([makeTransfer()]);
-    expect(telegramChatBotClient.sendMessage).not.toHaveBeenCalled();
-    expect(postWatchDogMessage).toHaveBeenCalledWith(
-      WATCH_DOG_CHAT_ID,
-      expect.stringContaining('operator not found')
-    );
+    const text = vi.mocked(postWatchDogMessage).mock.calls[0][1];
+    expect(text).toContain('notifications off');
+    expect(text).toContain(`alice (0xsend…0000) airdropped "${MOMENT_TITLE}" to cxy (0xreci…0000)`);
   });
 
   it('watch-dogs the exception when a step throws', async () => {
@@ -175,15 +183,16 @@ describe('notifyAirdrop', () => {
     expect(postWatchDogMessage).not.toHaveBeenCalled();
   });
 
-  it('sends telegram notification with airdrop details and watch-dogs the success', async () => {
+  it('sends telegram notification with airdrop details and watch-dogs the success with full direction', async () => {
     await notifyAirdrop([makeTransfer()]);
     expect(telegramChatBotClient.sendMessage).toHaveBeenCalledWith(
       CHAT_ID,
       expect.stringContaining('airdropped a moment')
     );
-    expect(postWatchDogMessage).toHaveBeenCalledWith(
-      WATCH_DOG_CHAT_ID,
-      expect.stringContaining('AIRDROP NOTIFY SENT')
+    const text = vi.mocked(postWatchDogMessage).mock.calls[0][1];
+    expect(text).toContain('AIRDROP NOTIFY SENT');
+    expect(text).toContain(
+      `alice (0xsend…0000) airdropped "${MOMENT_TITLE}" to cxy (0xreci…0000)`
     );
   });
 
@@ -194,15 +203,9 @@ describe('notifyAirdrop', () => {
     expect(message).toContain('alice');
   });
 
-  it('labels the recipient with their artist username in watch-dog messages', async () => {
-    await notifyAirdrop([makeTransfer()]);
-    const watchDogText = vi.mocked(postWatchDogMessage).mock.calls[0][1];
-    expect(watchDogText).toContain('cxy (0xreci…0000)');
-  });
-
   it('includes a human-readable date at the bottom of every watch-dog message', async () => {
     await notifyAirdrop([makeTransfer()]);
     const watchDogText = vi.mocked(postWatchDogMessage).mock.calls[0][1];
-    expect(watchDogText).toContain('date     : 2025-09-08 17:23:21 UTC');
+    expect(watchDogText).toContain('when     : 2025-09-08 17:23:21 UTC');
   });
 });
