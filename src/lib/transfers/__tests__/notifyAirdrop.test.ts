@@ -197,8 +197,7 @@ describe('notifyAirdrop', () => {
   it('labels the recipient with their artist username in watch-dog messages', async () => {
     await notifyAirdrop([makeTransfer()]);
     const watchDogText = vi.mocked(postWatchDogMessage).mock.calls[0][1];
-    const shortRecipient = `${RECIPIENT.slice(0, 10)}...${RECIPIENT.slice(-6)}`;
-    expect(watchDogText).toContain(`cxy (${shortRecipient})`);
+    expect(watchDogText).toContain('cxy (0xreci…0000)');
   });
 
   it('includes a human-readable date at the bottom of every watch-dog message', async () => {
