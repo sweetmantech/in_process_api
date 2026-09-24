@@ -22,6 +22,12 @@ vi.mock('@/lib/moment/resolveMomentInfo', () => ({
 vi.mock('@/lib/protocolSdk/ipfs/token-metadata', () => ({
   fetchTokenMetadata: vi.fn(),
 }));
+vi.mock('@/lib/supabase/in_process_metadata/selectMetadata', () => ({
+  default: vi.fn(),
+}));
+vi.mock('@/lib/arweave/getMimeType', () => ({
+  default: vi.fn(),
+}));
 vi.mock('@/lib/metadata/normalizeMetadata', () => ({
   default: vi.fn(),
 }));
@@ -40,6 +46,8 @@ import selectCollections from '@/lib/supabase/in_process_collections/selectColle
 import { resolveMomentInfo } from '@/lib/moment/resolveMomentInfo';
 import { fetchTokenMetadata } from '@/lib/protocolSdk/ipfs/token-metadata';
 import normalizeMetadata from '@/lib/metadata/normalizeMetadata';
+import selectMetadata from '@/lib/supabase/in_process_metadata/selectMetadata';
+import getMimeType from '@/lib/arweave/getMimeType';
 import getOgFonts from '@/lib/og/getOgFonts';
 import getWritingData from '@/lib/og/getWritingData';
 import getMomentPreview from '@/lib/og/getMomentPreview';
@@ -55,6 +63,8 @@ const mockNormalizeMetadata = vi.mocked(normalizeMetadata);
 const mockGetOgFonts = vi.mocked(getOgFonts);
 const mockGetWritingData = vi.mocked(getWritingData);
 const mockGetMomentPreview = vi.mocked(getMomentPreview);
+const mockSelectMetadata = vi.mocked(selectMetadata);
+const mockGetMimeType = vi.mocked(getMimeType);
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -187,6 +197,65 @@ describe('getOgMomentHandler', () => {
     expect(mockGetMomentPreview).toHaveBeenCalledWith(
       'https://gateway.irys.xyz/mutable/tx123'
     );
+  });
+
+  it('uses indexed metadata content uri when metadata has no image', async () => {
+    mockSelectCollections.mockResolvedValue([
+      { protocol: 'zora_media', uri: 'col-uri' },
+    ] as never);
+    mockResolveMomentInfo.mockResolvedValue({
+      id: 'moment-id',
+      uri: 'moment-uri',
+      contentUri: null,
+    } as never);
+    const cached = { content: { mime: 'image/jpeg', uri: 'ipfs://content' } };
+    mockSelectMetadata.mockResolvedValue(cached as never);
+    mockNormalizeMetadata.mockResolvedValue(cached as never);
+    mockGetMomentPreview.mockResolvedValue({
+      orientation: 1,
+      originalWidth: 1,
+      originalHeight: 1,
+      shouldRotate: false,
+      previewUrl: 'data:',
+    });
+
+    await getOgMomentHandler({
+      collectionAddress: COLLECTION,
+      tokenId: '1',
+      chainId: 1,
+    });
+
+    expect(mockSelectMetadata).toHaveBeenCalledWith('moment-id');
+    expect(mockFetchTokenMetadata).not.toHaveBeenCalled();
+    expect(mockGetMomentPreview).toHaveBeenCalledWith('ipfs://content');
+  });
+
+  it('uses on-chain content uri for unindexed zora media moments', async () => {
+    mockSelectCollections.mockResolvedValue([] as never);
+    mockResolveMomentInfo.mockResolvedValue({
+      id: null,
+      uri: 'moment-uri',
+      contentUri: 'ipfs://onchain',
+    } as never);
+    mockFetchTokenMetadata.mockResolvedValue({ name: 'm' } as never);
+    mockNormalizeMetadata.mockResolvedValue({ name: 'm' } as never);
+    mockGetMimeType.mockResolvedValue('image/png');
+    mockGetMomentPreview.mockResolvedValue({
+      orientation: 1,
+      originalWidth: 1,
+      originalHeight: 1,
+      shouldRotate: false,
+      previewUrl: 'data:',
+    });
+
+    await getOgMomentHandler({
+      collectionAddress: COLLECTION,
+      tokenId: '1',
+      chainId: 1,
+    });
+
+    expect(mockSelectMetadata).not.toHaveBeenCalled();
+    expect(mockGetMomentPreview).toHaveBeenCalledWith('ipfs://onchain');
   });
 
   it('throws when tokenId is 0 and collection is missing', async () => {

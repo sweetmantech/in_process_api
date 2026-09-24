@@ -8,6 +8,8 @@ import {
 } from '@/lib/og/consts';
 import { resolveMomentInfo } from '@/lib/moment/resolveMomentInfo';
 import { fetchTokenMetadata } from '@/lib/protocolSdk/ipfs/token-metadata';
+import selectMetadata from '@/lib/supabase/in_process_metadata/selectMetadata';
+import getMimeType from '@/lib/arweave/getMimeType';
 import getOgFonts from '@/lib/og/getOgFonts';
 import getWritingData from '@/lib/og/getWritingData';
 import getMomentPreview from '@/lib/og/getMomentPreview';
@@ -30,6 +32,8 @@ const getOgMomentHandler = async ({
   };
 
   let uri: string | null = null;
+  let momentId: string | null = null;
+  let contentUri: string | null = null;
   let customGateway: string | undefined;
 
   const collections = await selectCollections({
@@ -46,15 +50,23 @@ const getOgMomentHandler = async ({
     if (!collection) throw Error('no collection');
     uri = collection.uri;
   } else {
-    const { uri: momentUri } = await resolveMomentInfo(moment);
-    uri = momentUri;
+    ({ uri, id: momentId, contentUri } = await resolveMomentInfo(moment));
   }
 
   if (!uri) throw Error('failed to get moment uri');
 
-  const rawMetadata = await fetchTokenMetadata(uri, customGateway);
+  // Prefer indexed metadata: legacy tokens (e.g. zora_media) often have no
+  // `image` in their IPFS JSON, only an on-chain content URI.
+  const cachedMetadata =
+    momentId && !isCatalog ? await selectMetadata(momentId) : null;
+  const rawMetadata =
+    cachedMetadata ?? (await fetchTokenMetadata(uri, customGateway));
   if (!rawMetadata) throw Error('failed to get token metadata');
   const metadata = await normalizeMetadata(rawMetadata);
+  if (contentUri) {
+    const mime = await getMimeType(contentUri);
+    if (mime) metadata.content = { mime, uri: contentUri };
+  }
 
   const isWriting = metadata.content?.mime === 'text/plain';
 
@@ -64,15 +76,21 @@ const getOgMomentHandler = async ({
 
   if (isWriting && metadata.content?.uri) {
     ({ writingText, totalLines } = await getWritingData(metadata.content.uri));
-  } else if (metadata.image) {
-    imageMetadata = await getMomentPreview(
-      isCatalog
-        ? metadata.image.replace(
-            /^ar:\/\//,
-            'https://gateway.irys.xyz/mutable/'
-          )
-        : metadata.image
-    );
+  } else {
+    const previewImage =
+      metadata.image ||
+      (metadata.content?.mime?.startsWith('image/')
+        ? metadata.content.uri
+        : undefined);
+    if (previewImage)
+      imageMetadata = await getMomentPreview(
+        isCatalog
+          ? previewImage.replace(
+              /^ar:\/\//,
+              'https://gateway.irys.xyz/mutable/'
+            )
+          : previewImage
+      );
   }
 
   const { archivo, spectral } = await getOgFonts();
