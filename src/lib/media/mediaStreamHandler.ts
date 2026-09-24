@@ -8,17 +8,22 @@ import buildMediaCachePath from './buildMediaCachePath';
 import inferMediaCacheExtension from './inferMediaCacheExtension';
 import resolveMediaCacheUrl from './resolveMediaCacheUrl';
 import cacheVideoFromUri from './cacheVideoFromUri';
-import { MEDIA_CACHE_TTL_DAYS } from './mediaCacheConsts';
+import sliceByteRange from './sliceByteRange';
 
 export type MediaStreamHandlerInput = {
   uri: string;
   rangeHeader: string | null;
 };
 
-const CACHE_CONTROL = `public, max-age=${MEDIA_CACHE_TTL_DAYS * 24 * 60 * 60}`;
+// Keep well below MEDIA_CACHE_TTL_DAYS so a cached redirect never outlives the file.
+const CACHE_CONTROL = 'public, max-age=3600';
 
 const STREAM_CACHE_CONTROL =
   'public, max-age=31536000, immutable, s-maxage=31536000';
+
+// Full-body responses must not be edge-cached: the CDN would serve them to later
+// Range requests, and iOS Safari refuses to play media without 206 responses.
+const FULL_BODY_CACHE_CONTROL = 'no-store';
 
 const scheduleVideoCache = ({
   uri,
@@ -138,10 +143,38 @@ const mediaStreamHandler = async ({
   }
 
   const fullLength = originHeaders.get('content-length');
+  const total = fullLength ? parseInt(fullLength, 10) : NaN;
+
+  // Origin ignored Range (some Arweave gateways do): serve the requested slice as 206.
+  const requested = rangeRequestValue?.match(/^bytes=(\d+)-(\d+)$/);
+  if (requested && Number.isFinite(total)) {
+    const start = parseInt(requested[1], 10);
+    if (start >= total) {
+      await response.body.cancel();
+      return new Response(null, {
+        status: 416,
+        headers: { 'Content-Range': `bytes */${total}` },
+      });
+    }
+    const end = Math.min(parseInt(requested[2], 10), total - 1);
+
+    return new Response(sliceByteRange(response.body, start, end), {
+      status: 206,
+      headers: {
+        'Content-Type': contentType,
+        'Accept-Ranges': 'bytes',
+        'Content-Length': (end - start + 1).toString(),
+        'Content-Range': `bytes ${start}-${end}/${total}`,
+        'Cache-Control': STREAM_CACHE_CONTROL,
+        Vary: 'Range',
+      },
+    });
+  }
+
   const responseHeaders = new Headers({
     'Content-Type': contentType,
     'Accept-Ranges': 'bytes',
-    'Cache-Control': STREAM_CACHE_CONTROL,
+    'Cache-Control': FULL_BODY_CACHE_CONTROL,
   });
   if (fullLength) {
     responseHeaders.set('Content-Length', fullLength);

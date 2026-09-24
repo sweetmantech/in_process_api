@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextResponse } from 'next/server';
 import mediaStreamHandler from '@/lib/media/mediaStreamHandler';
-import { MEDIA_CACHE_TTL_DAYS } from '@/lib/media/mediaCacheConsts';
 
 const afterTasks: Array<() => void | Promise<void>> = [];
 
@@ -63,9 +62,7 @@ describe('mediaStreamHandler', () => {
 
     expect(result.status).toBe(302);
     expect(result.headers.get('Location')).toContain('media-cache/abc.mp4');
-    expect(result.headers.get('Cache-Control')).toBe(
-      `public, max-age=${MEDIA_CACHE_TTL_DAYS * 24 * 60 * 60}`
-    );
+    expect(result.headers.get('Cache-Control')).toBe('public, max-age=3600');
     expect(fetchUri).not.toHaveBeenCalled();
     expect(afterTasks).toHaveLength(0);
   });
@@ -119,7 +116,7 @@ describe('mediaStreamHandler', () => {
       expect(result.headers.get('Content-Range')).toBeNull();
     });
 
-    it('should return 200 when range requested but origin returns 200', async () => {
+    it('should return 206 when range requested but origin returns 200', async () => {
       vi.mocked(fetchUri).mockResolvedValue({
         ok: true,
         status: 200,
@@ -135,9 +132,93 @@ describe('mediaStreamHandler', () => {
         rangeHeader: 'bytes=0-499',
       });
 
+      expect(result.status).toBe(206);
+      expect(result.headers.get('Content-Length')).toBe('500');
+      expect(result.headers.get('Content-Range')).toBe('bytes 0-499/1000');
+      expect(result.headers.get('Vary')).toBe('Range');
+    });
+
+    it('should slice the requested bytes across chunks when origin returns 200', async () => {
+      vi.mocked(fetchUri).mockResolvedValue({
+        ok: true,
+        status: 200,
+        body: new ReadableStream({
+          start(controller) {
+            controller.enqueue(new Uint8Array([0, 1, 2, 3]));
+            controller.enqueue(new Uint8Array([4, 5, 6, 7]));
+            controller.enqueue(new Uint8Array([8, 9]));
+            controller.close();
+          },
+        }),
+        headers: h({ 'content-type': 'video/mp4', 'content-length': '10' }),
+      } as Response);
+
+      const result = await mediaStreamHandler({
+        uri: VIDEO,
+        rangeHeader: 'bytes=2-5',
+      });
+
+      expect(result.status).toBe(206);
+      expect(result.headers.get('Content-Range')).toBe('bytes 2-5/10');
+      expect(result.headers.get('Content-Length')).toBe('4');
+      expect(Array.from(new Uint8Array(await result.arrayBuffer()))).toEqual([
+        2, 3, 4, 5,
+      ]);
+    });
+
+    it('should clamp an open-ended range to the origin length when origin returns 200', async () => {
+      vi.mocked(fetchUri).mockResolvedValue({
+        ok: true,
+        status: 200,
+        body: createMockStream(),
+        headers: h({ 'content-type': 'video/mp4', 'content-length': '4' }),
+      } as Response);
+
+      const result = await mediaStreamHandler({
+        uri: VIDEO,
+        rangeHeader: 'bytes=1-',
+      });
+
+      expect(result.status).toBe(206);
+      expect(result.headers.get('Content-Range')).toBe('bytes 1-3/4');
+      expect(Array.from(new Uint8Array(await result.arrayBuffer()))).toEqual([
+        2, 3, 4,
+      ]);
+    });
+
+    it('should return 416 when range starts past the end and origin returns 200', async () => {
+      vi.mocked(fetchUri).mockResolvedValue({
+        ok: true,
+        status: 200,
+        body: createMockStream(),
+        headers: h({ 'content-type': 'video/mp4', 'content-length': '4' }),
+      } as Response);
+
+      const result = await mediaStreamHandler({
+        uri: VIDEO,
+        rangeHeader: 'bytes=10-20',
+      });
+
+      expect(result.status).toBe(416);
+      expect(result.headers.get('Content-Range')).toBe('bytes */4');
+    });
+
+    it('should return 200 when origin returns 200 without Content-Length', async () => {
+      vi.mocked(fetchUri).mockResolvedValue({
+        ok: true,
+        status: 200,
+        body: createMockStream(),
+        headers: h({ 'content-type': 'video/mp4' }),
+      } as Response);
+
+      const result = await mediaStreamHandler({
+        uri: VIDEO,
+        rangeHeader: 'bytes=0-499',
+      });
+
       expect(result.status).toBe(200);
-      expect(result.headers.get('Content-Length')).toBe('1000');
       expect(result.headers.get('Content-Range')).toBeNull();
+      expect(result.headers.get('Cache-Control')).toBe('no-store');
     });
 
     it('should send Range when client requests bytes (origin may still return 200)', async () => {
@@ -351,7 +432,7 @@ describe('mediaStreamHandler', () => {
   });
 
   describe('response headers', () => {
-    it('should set Cache-Control header', async () => {
+    it('should not edge-cache full-body 200 responses', async () => {
       vi.mocked(fetchUri).mockResolvedValue({
         ok: true,
         status: 200,
@@ -364,9 +445,7 @@ describe('mediaStreamHandler', () => {
         rangeHeader: null,
       });
 
-      expect(result.headers.get('Cache-Control')).toBe(
-        EXPECTED_STREAM_CACHE_CONTROL
-      );
+      expect(result.headers.get('Cache-Control')).toBe('no-store');
     });
 
     it('should set Vary: Range on 206 responses', async () => {
