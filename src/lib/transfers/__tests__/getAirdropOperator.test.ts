@@ -132,15 +132,34 @@ describe('getAirdropOperator', () => {
       );
     });
 
-    it('throws when owner addresses return only smart wallets', async () => {
+    it('falls back to a smart wallet when owners match only smart wallets', async () => {
       mockSelectWallets.mockResolvedValue({
         data: [
           { address: eoaAddress, type: 'smart', artist: { username: 'bob' } },
         ],
       } as never);
-      await expect(getAirdropOperator(transferFixture())).rejects.toThrow(
-        'Airdrop operator not found'
-      );
+
+      const result = await getAirdropOperator(transferFixture());
+
+      expect(result).toEqual({ address: eoaAddress, username: 'bob' });
+    });
+
+    it('prefers a non-smart wallet over a smart wallet', async () => {
+      mockGetOwnerAddresses.mockResolvedValue([eoaAddress, creatorAddress]);
+      mockSelectWallets.mockResolvedValue({
+        data: [
+          {
+            address: creatorAddress,
+            type: 'smart',
+            artist: { username: 'bob' },
+          },
+          { address: eoaAddress, type: 'privy', artist: { username: 'bob' } },
+        ],
+      } as never);
+
+      const result = await getAirdropOperator(transferFixture());
+
+      expect(result).toEqual({ address: eoaAddress, username: 'bob' });
     });
   });
 
