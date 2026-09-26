@@ -62,6 +62,14 @@ describe('getAirdropOperator', () => {
     mockIsCb.mockResolvedValue(false);
   });
 
+  it('returns null when the transfer is not a mint', async () => {
+    mockGetOperator.mockResolvedValue(null);
+
+    await expect(getAirdropOperator(transferFixture())).resolves.toBeNull();
+    expect(mockIsCb).not.toHaveBeenCalled();
+    expect(mockSelectWallets).not.toHaveBeenCalled();
+  });
+
   describe('factory operator', () => {
     beforeEach(() => {
       mockGetOperator.mockResolvedValue(factoryAddress);

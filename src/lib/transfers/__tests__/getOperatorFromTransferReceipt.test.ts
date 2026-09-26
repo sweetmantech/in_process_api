@@ -70,16 +70,16 @@ describe('getOperatorFromTransferReceipt', () => {
     ).resolves.toBe(operatorAddress);
   });
 
-  it('throws when logs array is empty', async () => {
+  it('returns null when logs array is empty', async () => {
     mockGetPublicClient.mockReturnValue({
       getTransactionReceipt: vi.fn().mockResolvedValue({ logs: [] }),
     } as never);
     await expect(
       getOperatorFromTransferReceipt(transferFixture())
-    ).rejects.toThrow('Airdrop mint TransferSingle log not found');
+    ).resolves.toBeNull();
   });
 
-  it('throws when topics[0] does not match TransferSingle', async () => {
+  it('returns null when topics[0] does not match TransferSingle', async () => {
     mockGetPublicClient.mockReturnValue({
       getTransactionReceipt: vi
         .fn()
@@ -89,10 +89,10 @@ describe('getOperatorFromTransferReceipt', () => {
     } as never);
     await expect(
       getOperatorFromTransferReceipt(transferFixture())
-    ).rejects.toThrow('Airdrop mint TransferSingle log not found');
+    ).resolves.toBeNull();
   });
 
-  it('throws when log is from a different contract', async () => {
+  it('returns null when log is from a different contract', async () => {
     mockGetPublicClient.mockReturnValue({
       getTransactionReceipt: vi
         .fn()
@@ -100,10 +100,10 @@ describe('getOperatorFromTransferReceipt', () => {
     } as never);
     await expect(
       getOperatorFromTransferReceipt(transferFixture())
-    ).rejects.toThrow('Airdrop mint TransferSingle log not found');
+    ).resolves.toBeNull();
   });
 
-  it('throws when from topic is not zero address (not a mint)', async () => {
+  it('returns null when from topic is not zero address (not a mint)', async () => {
     mockGetPublicClient.mockReturnValue({
       getTransactionReceipt: vi
         .fn()
@@ -118,16 +118,16 @@ describe('getOperatorFromTransferReceipt', () => {
     } as never);
     await expect(
       getOperatorFromTransferReceipt(transferFixture())
-    ).rejects.toThrow('Airdrop mint TransferSingle log not found');
+    ).resolves.toBeNull();
   });
 
-  it('throws when to topic does not match recipient', async () => {
+  it('returns null when to topic does not match recipient', async () => {
     await expect(
       getOperatorFromTransferReceipt(
         transferFixture({
           recipient: '0x0000000000000000000000000000000000000001',
         })
       )
-    ).rejects.toThrow('Airdrop mint TransferSingle log not found');
+    ).resolves.toBeNull();
   });
 });
