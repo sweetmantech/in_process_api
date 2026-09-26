@@ -113,6 +113,16 @@ describe('notifyAirdrop', () => {
     expect(postWatchDogMessage).not.toHaveBeenCalled();
   });
 
+  it('skips silently when the transfer is not a mint (e.g. secondary sale)', async () => {
+    vi.mocked(getAirdropOperator).mockResolvedValue(null);
+
+    await notifyAirdrop([makeTransfer()]);
+
+    expect(selectAccountNotification).not.toHaveBeenCalled();
+    expect(telegramChatBotClient.sendMessage).not.toHaveBeenCalled();
+    expect(postWatchDogMessage).not.toHaveBeenCalled();
+  });
+
   it('watch-dogs and skips notification when the operator cannot be identified, before checking notify settings', async () => {
     vi.mocked(getAirdropOperator).mockResolvedValue({
       address: '',
@@ -149,7 +159,9 @@ describe('notifyAirdrop', () => {
     const text = vi.mocked(postWatchDogMessage).mock.calls[0][1];
     expect(text).toContain('notifications off');
     expect(text).not.toContain('never linked Telegram');
-    expect(text).toContain(`alice (0xsend…0000) airdropped "${MOMENT_TITLE}" to cxy (0xreci…0000)`);
+    expect(text).toContain(
+      `alice (0xsend…0000) airdropped "${MOMENT_TITLE}" to cxy (0xreci…0000)`
+    );
   });
 
   it('watch-dogs the exception when a step throws', async () => {

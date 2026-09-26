@@ -14,9 +14,10 @@ const getAirdropOperator = async (
 ): Promise<{
   address: string;
   username: string | null;
-}> => {
+} | null> => {
   const chainId = t.chain_id;
   const address = await getOperatorFromTransferReceipt(t);
+  if (!address) return null;
 
   const factoryAddress =
     FACTORY_ADDRESSES[chainId as keyof typeof FACTORY_ADDRESSES];

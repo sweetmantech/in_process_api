@@ -31,12 +31,15 @@ const notifyAirdrop = async (batch: Transfers_t[]): Promise<void> => {
       const wallets = await resolveLinkedWalletAddresses(recipient);
       if (!wallets.length) continue;
 
-      const [{ data: recipientWallets }, momentTitle, { address, username }] =
+      const [{ data: recipientWallets }, momentTitle, operator] =
         await Promise.all([
           selectWallets({ addresses: [recipient] }),
           getMomentTitleForTransfer(t),
           getAirdropOperator(t),
         ]);
+      // Not a mint (secondary sale, wallet-to-wallet move): not an airdrop.
+      if (!operator) continue;
+      const { address, username } = operator;
       const recipientLabel = formatWalletIdentity(
         recipient,
         recipientWallets?.[0]?.artist?.username
