@@ -1009,6 +1009,13 @@ export type Database = {
           wallet: string;
         }[];
       };
+      get_video_moments_pending_playback: {
+        Args: { p_limit?: number };
+        Returns: {
+          moment: string;
+          source_uri: string;
+        }[];
+      };
       get_weekly_wrap_up_stats: {
         Args: { p_days?: number };
         Returns: {
