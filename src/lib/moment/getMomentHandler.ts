@@ -5,6 +5,7 @@ import getMetadata from '@/lib/moment/getMetadata';
 import getMomentAdmins from '@/lib/moment/getMomentAdmins';
 import { resolveMomentInfo } from '@/lib/moment/resolveMomentInfo';
 import selectCollections from '@/lib/supabase/in_process_collections/selectCollections';
+import selectReadyVideoPlayback from '@/lib/supabase/in_process_video_playback/selectReadyVideoPlayback';
 import getZoraMediaInfo from '@/lib/viem/getZoraMediaInfo';
 import { Moment } from '@/types/moment';
 
@@ -26,9 +27,10 @@ const getMomentHandler = async (moment: Moment) => {
     );
   }
 
-  const [metadata, admins] = await Promise.all([
+  const [metadata, admins, video] = await Promise.all([
     getMetadata(id, uri),
     getMomentAdmins({ collection, owner, moment, protocol }),
+    id ? selectReadyVideoPlayback(id) : null,
   ]);
 
   let resolvedOwner = owner;
@@ -65,6 +67,7 @@ const getMomentHandler = async (moment: Moment) => {
     protocol,
     admins,
     metadata: normalizedMetadata,
+    video,
   });
 };
 
