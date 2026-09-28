@@ -40,6 +40,7 @@ describe('ingestPendingMomentVideos', () => {
       created: 0,
       errored: 0,
       retryLater: 0,
+      deferred: 0,
     });
     expect(mockSelect).not.toHaveBeenCalled();
   });
@@ -61,6 +62,7 @@ describe('ingestPendingMomentVideos', () => {
       created: 2,
       errored: 0,
       retryLater: 0,
+      deferred: 0,
     });
   });
 
@@ -113,6 +115,20 @@ describe('ingestPendingMomentVideos', () => {
 
     expect(mockMarkErrored).not.toHaveBeenCalled();
     expect(summary.retryLater).toBe(1);
+  });
+
+  it('stops starting new ingests once the time budget is spent', async () => {
+    let now = 1_000_000;
+    vi.spyOn(Date, 'now').mockImplementation(() => now);
+    mockIngest.mockImplementation(async () => {
+      now += 41_000; // first ingest runs past the 40s budget
+      return created;
+    });
+
+    const summary = await ingestPendingMomentVideos(5);
+
+    expect(mockIngest).toHaveBeenCalledTimes(1);
+    expect(summary).toMatchObject({ selected: 2, created: 1, deferred: 1 });
   });
 
   it('throws when the pending query fails', async () => {
