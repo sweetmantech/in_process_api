@@ -3,6 +3,7 @@ import normalizeMetadata from '@/lib/metadata/normalizeMetadata';
 import getMimeType from '@/lib/arweave/getMimeType';
 import getMetadata from '@/lib/moment/getMetadata';
 import getMomentAdmins from '@/lib/moment/getMomentAdmins';
+import getMomentVideo from '@/lib/moment/getMomentVideo';
 import { resolveMomentInfo } from '@/lib/moment/resolveMomentInfo';
 import selectCollections from '@/lib/supabase/in_process_collections/selectCollections';
 import getZoraMediaInfo from '@/lib/viem/getZoraMediaInfo';
@@ -26,9 +27,10 @@ const getMomentHandler = async (moment: Moment) => {
     );
   }
 
-  const [metadata, admins] = await Promise.all([
+  const [metadata, admins, video] = await Promise.all([
     getMetadata(id, uri),
     getMomentAdmins({ collection, owner, moment, protocol }),
+    getMomentVideo(id),
   ]);
 
   let resolvedOwner = owner;
@@ -65,6 +67,7 @@ const getMomentHandler = async (moment: Moment) => {
     protocol,
     admins,
     metadata: normalizedMetadata,
+    video,
   });
 };
 

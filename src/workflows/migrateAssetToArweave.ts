@@ -7,7 +7,7 @@ import downloadAndUploadStep from './steps/downloadAndUploadStep';
 import uploadMigratedMetadataStep from './steps/uploadMigratedMetadataStep';
 import uploadMigratedCarouselStep from './steps/uploadMigratedCarouselStep';
 import updateOnChainStep from './steps/updateOnChainStep';
-import deleteMuxAssetStep from './steps/deleteMuxAssetStep';
+import saveVideoPlaybackStep from './steps/saveVideoPlaybackStep';
 import deleteSupabaseFilesStep from './steps/deleteSupabaseFilesStep';
 import getOnChainUriStep from './steps/getOnChainUriStep';
 import waitMuxMp4ReadyStep from './steps/waitMuxMp4ReadyStep';
@@ -87,6 +87,9 @@ async function migrateAssetToArweave(p: MigrateAssetToArweavePayload) {
   const onChainUri = await getOnChainUriStep(moment);
 
   if (onChainUri === uri) {
+    // Keep the Mux asset as the moment's streaming copy; Arweave stays the
+    // permanent one.
+    if (hlsAnimationUrl) await saveVideoPlaybackStep(moment, hlsAnimationUrl);
     await updateOnChainStep({
       moment,
       metadataUri,
@@ -95,7 +98,6 @@ async function migrateAssetToArweave(p: MigrateAssetToArweavePayload) {
     });
   }
 
-  if (hlsAnimationUrl) await deleteMuxAssetStep(hlsAnimationUrl);
   await deleteSupabaseFilesStep(supabaseUrls);
 
   if (onChainUri !== uri) {

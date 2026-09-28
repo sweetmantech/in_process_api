@@ -659,6 +659,53 @@ export type Database = {
           },
         ];
       };
+      in_process_video_playback: {
+        Row: {
+          asset_id: string | null;
+          created_at: string;
+          id: string;
+          last_viewed_at: string | null;
+          moment: string;
+          playback_id: string | null;
+          provider: string;
+          source_uri: string | null;
+          status: string;
+          updated_at: string;
+        };
+        Insert: {
+          asset_id?: string | null;
+          created_at?: string;
+          id?: string;
+          last_viewed_at?: string | null;
+          moment: string;
+          playback_id?: string | null;
+          provider?: string;
+          source_uri?: string | null;
+          status?: string;
+          updated_at?: string;
+        };
+        Update: {
+          asset_id?: string | null;
+          created_at?: string;
+          id?: string;
+          last_viewed_at?: string | null;
+          moment?: string;
+          playback_id?: string | null;
+          provider?: string;
+          source_uri?: string | null;
+          status?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'in_process_video_playback_moment_fkey';
+            columns: ['moment'];
+            isOneToOne: true;
+            referencedRelation: 'in_process_moments';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       in_process_wallets: {
         Row: {
           address: string;
