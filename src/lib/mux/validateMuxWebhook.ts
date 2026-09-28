@@ -9,7 +9,10 @@ const validateMuxWebhook = async (
   const body = await req.text();
   try {
     return mux.webhooks.unwrap(body, req.headers);
-  } catch {
+  } catch (e) {
+    console.warn(
+      `[mux-webhook] rejected: ${e instanceof Error ? e.message : String(e)}`
+    );
     return NextResponse.json({ message: 'Invalid signature' }, { status: 401 });
   }
 };

@@ -8,7 +8,13 @@ export type IngestPendingSummary = {
   created: number;
   errored: number;
   retryLater: number;
+  deferred: number;
 };
+
+// Stop starting new ingests well before the route's 60s maxDuration: a run cut
+// off mid-ingest could leave a Mux asset without its row, and the next run would
+// pick the moment again. Finishing early also keeps runs from overlapping.
+const TIME_BUDGET_MS = 40_000;
 
 /**
  * Gives the next `limit` video moments without playback a Mux streaming copy,
@@ -17,15 +23,27 @@ export type IngestPendingSummary = {
 const ingestPendingMomentVideos = async (
   limit: number
 ): Promise<IngestPendingSummary> => {
-  const summary = { selected: 0, created: 0, errored: 0, retryLater: 0 };
+  const summary = {
+    selected: 0,
+    created: 0,
+    errored: 0,
+    retryLater: 0,
+    deferred: 0,
+  };
   if (limit <= 0) return summary;
+  const startedAt = Date.now();
 
   const { data, error } = await selectVideoMomentsPendingPlayback(limit);
   if (error)
     throw new Error(`Failed to select pending videos: ${error.message}`);
   summary.selected = data?.length ?? 0;
 
-  for (const { moment, source_uri } of data ?? []) {
+  for (const [index, { moment, source_uri }] of (data ?? []).entries()) {
+    if (Date.now() - startedAt > TIME_BUDGET_MS) {
+      // Left pending; the next run picks them up.
+      summary.deferred = summary.selected - index;
+      break;
+    }
     try {
       const result = await ingestMomentVideoToMux({
         momentId: moment,
@@ -33,19 +51,28 @@ const ingestPendingMomentVideos = async (
       });
       if (result.status === 'created') {
         summary.created++;
+        console.log(
+          `[mux-ingest] created moment=${moment} asset=${result.assetId} source=${source_uri}`
+        );
       } else {
         await markVideoPlaybackErrored(moment, source_uri);
         summary.errored++;
+        console.log(
+          `[mux-ingest] errored moment=${moment} reason="${result.reason}" source=${source_uri}`
+        );
       }
     } catch (e) {
       if (isPermanentMuxError(e)) {
         await markVideoPlaybackErrored(moment, source_uri);
         summary.errored++;
+        console.log(
+          `[mux-ingest] errored moment=${moment} reason="mux rejected input: ${e instanceof Error ? e.message : e}" source=${source_uri}`
+        );
         continue;
       }
       // Transient (rate limit, Mux/DB outage): leave it pending for the next
       // run and stop this one instead of hammering the API.
-      console.error(`Mux ingest failed for moment ${moment}:`, e);
+      console.error(`[mux-ingest] retry later moment=${moment}:`, e);
       summary.retryLater++;
       break;
     }

@@ -11,7 +11,11 @@ export async function GET(req: NextRequest) {
   if (unauthorized) return unauthorized;
 
   try {
-    const summary = await ingestPendingMomentVideos(getMuxIngestBatchSize());
+    const batchSize = getMuxIngestBatchSize();
+    const summary = await ingestPendingMomentVideos(batchSize);
+    // Skip the log while the cron is off (batch size 0) to keep logs quiet.
+    if (batchSize > 0)
+      console.log(`[mux-ingest] run batch=${batchSize}`, summary);
     return NextResponse.json({ status: 'success', ...summary });
   } catch (e: any) {
     console.error('[GET /api/mux/ingest]', e);
