@@ -88,8 +88,7 @@ async function migrateAssetToArweave(p: MigrateAssetToArweavePayload) {
 
   if (onChainUri === uri) {
     // Keep the Mux asset as the moment's streaming copy; Arweave stays the
-    // permanent one. Saved before the on-chain switch so cleanTemporaryAssets
-    // never sees the asset unreferenced.
+    // permanent one.
     if (hlsAnimationUrl) await saveVideoPlaybackStep(moment, hlsAnimationUrl);
     await updateOnChainStep({
       moment,

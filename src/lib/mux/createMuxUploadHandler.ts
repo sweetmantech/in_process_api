@@ -1,11 +1,8 @@
 import { NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
 import mux from '@/lib/mux';
-import cleanTemporaryAssets from '@/lib/mux/cleanTemporaryAssets';
 
 const createMuxUploadHandler = async (): Promise<NextResponse> => {
-  await cleanTemporaryAssets();
-
   const upload = await mux.video.uploads.create({
     cors_origin: '*',
     new_asset_settings: {

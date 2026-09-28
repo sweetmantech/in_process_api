@@ -1,10 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import createMuxUploadHandler from '../createMuxUploadHandler';
 
-vi.mock('@/lib/mux/cleanTemporaryAssets', () => ({
-  default: vi.fn().mockResolvedValue(undefined),
-}));
-
 vi.mock('uuid', () => ({ v4: () => 'test-uuid' }));
 
 vi.mock('@/lib/mux', () => ({
@@ -16,27 +12,14 @@ vi.mock('@/lib/mux', () => ({
 }));
 
 import mux from '@/lib/mux';
-import cleanTemporaryAssets from '@/lib/mux/cleanTemporaryAssets';
 
 const mockCreate = vi.mocked(mux.video.uploads.create);
-const mockClean = vi.mocked(cleanTemporaryAssets);
 
 beforeEach(() => {
   vi.clearAllMocks();
 });
 
 describe('createMuxUploadHandler', () => {
-  it('calls cleanTemporaryAssets before creating upload', async () => {
-    mockCreate.mockResolvedValue({
-      url: 'https://upload.mux.com/url',
-      id: 'upload-id',
-    } as any);
-
-    await createMuxUploadHandler();
-
-    expect(mockClean).toHaveBeenCalledOnce();
-  });
-
   it('returns uploadURL and uploadId', async () => {
     mockCreate.mockResolvedValue({
       url: 'https://upload.mux.com/url',

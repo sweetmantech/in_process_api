@@ -13,10 +13,7 @@ vi.mock('@/lib/moment/resolveMomentInfo', () => ({
   resolveMomentInfo: vi.fn(),
 }));
 
-vi.mock(
-  '@/lib/supabase/in_process_video_playback/selectReadyVideoPlayback',
-  () => ({ default: vi.fn() })
-);
+vi.mock('@/lib/moment/getMomentVideo', () => ({ default: vi.fn() }));
 vi.mock('@/lib/moment/getMetadata', () => ({
   default: vi.fn(),
 }));
@@ -40,7 +37,7 @@ vi.mock('@/lib/viem/getZoraMediaInfo', () => ({
 import selectCollections from '@/lib/supabase/in_process_collections/selectCollections';
 import { resolveMomentInfo } from '@/lib/moment/resolveMomentInfo';
 import getMetadata from '@/lib/moment/getMetadata';
-import selectReadyVideoPlayback from '@/lib/supabase/in_process_video_playback/selectReadyVideoPlayback';
+import getMomentVideo from '@/lib/moment/getMomentVideo';
 import getMomentAdmins from '@/lib/moment/getMomentAdmins';
 import normalizeMetadata from '@/lib/metadata/normalizeMetadata';
 import getMimeType from '@/lib/arweave/getMimeType';
@@ -103,18 +100,18 @@ describe('getMomentHandler', () => {
     vi.mocked(getMomentAdmins).mockResolvedValue([ADMIN] as any);
     vi.mocked(normalizeMetadata).mockResolvedValue(normalizedMetadata as any);
     vi.mocked(getMimeType).mockResolvedValue('audio/mpeg');
-    vi.mocked(selectReadyVideoPlayback).mockResolvedValue(null);
+    vi.mocked(getMomentVideo).mockResolvedValue(null);
   });
 
   it('includes ready video playback for the moment', async () => {
-    vi.mocked(selectReadyVideoPlayback).mockResolvedValue({
+    vi.mocked(getMomentVideo).mockResolvedValue({
       provider: 'mux',
       playback_id: 'playback123',
     });
 
     const json = await (await getMomentHandler(moment)).json();
 
-    expect(selectReadyVideoPlayback).toHaveBeenCalledWith('moment-id');
+    expect(getMomentVideo).toHaveBeenCalledWith('moment-id');
     expect(json.video).toEqual({ provider: 'mux', playback_id: 'playback123' });
   });
 

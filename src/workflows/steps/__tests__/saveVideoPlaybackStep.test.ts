@@ -41,7 +41,7 @@ describe('saveVideoPlaybackStep', () => {
       error: null,
     } as never);
     mockFindAssetId.mockResolvedValue('asset123');
-    mockUpsert.mockResolvedValue(undefined);
+    mockUpsert.mockResolvedValue({ error: null } as never);
   });
 
   it('records the Mux asset as ready playback for the moment', async () => {
@@ -92,6 +92,14 @@ describe('saveVideoPlaybackStep', () => {
       'Mux asset not found for playback123'
     );
     expect(mockUpsert).not.toHaveBeenCalled();
+  });
+
+  it('throws when the upsert fails', async () => {
+    mockUpsert.mockResolvedValue({ error: { message: 'db down' } } as never);
+
+    await expect(saveVideoPlaybackStep(moment, PLAYBACK_URL)).rejects.toThrow(
+      'db down'
+    );
   });
 
   it('throws for a non-Mux URL', async () => {
