@@ -23,6 +23,7 @@ const event = (type: string, passthrough?: string) =>
 describe('muxWebhookHandler', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.spyOn(console, 'log').mockImplementation(() => {});
     mockUpsert.mockResolvedValue({ error: null } as never);
   });
 
@@ -47,6 +48,24 @@ describe('muxWebhookHandler', () => {
     );
     expect(mockUpsert).toHaveBeenCalledWith(
       expect.objectContaining({ status: 'errored' })
+    );
+  });
+
+  it('logs why an ingested asset errored', async () => {
+    const log = vi.spyOn(console, 'log').mockImplementation(() => {});
+    await muxWebhookHandler({
+      type: 'video.asset.errored',
+      data: {
+        id: 'asset1',
+        passthrough: `moment:${MOMENT_ID}`,
+        errors: { type: 'invalid_input', messages: ['File is not a video'] },
+      },
+    } as never);
+
+    expect(log).toHaveBeenCalledWith(
+      expect.stringContaining(
+        `errored moment=${MOMENT_ID} asset=asset1 playback=null reason="invalid_input: File is not a video"`
+      )
     );
   });
 

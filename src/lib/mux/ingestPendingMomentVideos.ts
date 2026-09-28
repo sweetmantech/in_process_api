@@ -51,19 +51,28 @@ const ingestPendingMomentVideos = async (
       });
       if (result.status === 'created') {
         summary.created++;
+        console.log(
+          `[mux-ingest] created moment=${moment} asset=${result.assetId} source=${source_uri}`
+        );
       } else {
         await markVideoPlaybackErrored(moment, source_uri);
         summary.errored++;
+        console.log(
+          `[mux-ingest] errored moment=${moment} reason="${result.reason}" source=${source_uri}`
+        );
       }
     } catch (e) {
       if (isPermanentMuxError(e)) {
         await markVideoPlaybackErrored(moment, source_uri);
         summary.errored++;
+        console.log(
+          `[mux-ingest] errored moment=${moment} reason="mux rejected input: ${e instanceof Error ? e.message : e}" source=${source_uri}`
+        );
         continue;
       }
       // Transient (rate limit, Mux/DB outage): leave it pending for the next
       // run and stop this one instead of hammering the API.
-      console.error(`Mux ingest failed for moment ${moment}:`, e);
+      console.error(`[mux-ingest] retry later moment=${moment}:`, e);
       summary.retryLater++;
       break;
     }
