@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-// Records builder calls on the collections query and resolves with `result`.
 const calls: Array<[string, unknown[]]> = [];
 let result: { data: unknown; error: unknown } = { data: [], error: null };
 

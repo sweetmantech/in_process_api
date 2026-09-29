@@ -35,7 +35,6 @@ const getMomentsByAddressAndTokenId = async ({
   try {
     collections = await selectCollections({ addresses, chainId });
   } catch (error) {
-    // selectCollections throws; keep this function's { data, error } contract.
     return { data: null, error: error as { message: string } };
   }
   if (!collections.length) return { data: [], error: null };
