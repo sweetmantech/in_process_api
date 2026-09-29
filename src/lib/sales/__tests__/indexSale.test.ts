@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Address } from 'viem';
 
-vi.mock('@/lib/supabase/in_process_moments/selectMoments', () => ({
+vi.mock('@/lib/moment/getMomentsByAddressAndTokenId', () => ({
   default: vi.fn(),
 }));
 vi.mock('@/lib/supabase/in_process_sales/selectSale', () => ({
@@ -25,7 +25,7 @@ vi.mock(
   () => ({ upsertFeeRecipients: vi.fn() })
 );
 
-import selectMoments from '@/lib/supabase/in_process_moments/selectMoments';
+import getMomentsByAddressAndTokenId from '@/lib/moment/getMomentsByAddressAndTokenId';
 import selectSale from '@/lib/supabase/in_process_sales/selectSale';
 import { upsertSales } from '@/lib/supabase/in_process_sales/upsertSales';
 import { getFeeRecipientsForSale } from '@/lib/sales/getFeeRecipientsForSale';
@@ -79,7 +79,7 @@ const feeRecipients = [
 describe('indexSale', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(selectMoments).mockResolvedValue({
+    vi.mocked(getMomentsByAddressAndTokenId).mockResolvedValue({
       data: [dbMoment],
       error: null,
     } as never);
@@ -92,7 +92,7 @@ describe('indexSale', () => {
   });
 
   it('returns without writing when the moment is not in the database', async () => {
-    vi.mocked(selectMoments).mockResolvedValue({
+    vi.mocked(getMomentsByAddressAndTokenId).mockResolvedValue({
       data: [],
       error: null,
     } as never);

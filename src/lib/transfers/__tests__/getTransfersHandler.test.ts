@@ -5,12 +5,12 @@ vi.mock('@/lib/transfers/getTransfers', () => ({
   default: vi.fn(),
 }));
 
-vi.mock('@/lib/supabase/in_process_moments/selectMoments', () => ({
+vi.mock('@/lib/moment/getMomentsByAddressAndTokenId', () => ({
   default: vi.fn(),
 }));
 
 import getTransfers from '@/lib/transfers/getTransfers';
-import selectMoments from '@/lib/supabase/in_process_moments/selectMoments';
+import getMomentsByAddressAndTokenId from '@/lib/moment/getMomentsByAddressAndTokenId';
 import getTransfersHandler from '@/lib/transfers/getTransfersHandler';
 
 const BASE_PARAMS = {
@@ -370,8 +370,8 @@ describe('getTransfersHandler', () => {
   });
 
   describe('moment pre-resolve', () => {
-    it('resolves momentId via selectMoments when collection and tokenId are provided', async () => {
-      vi.mocked(selectMoments).mockResolvedValue({
+    it('resolves momentId via getMomentsByAddressAndTokenId when collection and tokenId are provided', async () => {
+      vi.mocked(getMomentsByAddressAndTokenId).mockResolvedValue({
         data: [{ id: 'moment-uuid-123' }] as any,
         error: null,
       });
@@ -388,16 +388,19 @@ describe('getTransfersHandler', () => {
       );
     });
 
-    it('does not call selectMoments when collection and tokenId are absent', async () => {
+    it('does not call getMomentsByAddressAndTokenId when collection and tokenId are absent', async () => {
       vi.mocked(getTransfers).mockResolvedValue({ data: [], count: 0 });
 
       await getTransfersHandler(BASE_PARAMS);
 
-      expect(selectMoments).not.toHaveBeenCalled();
+      expect(getMomentsByAddressAndTokenId).not.toHaveBeenCalled();
     });
 
-    it('omits momentId if selectMoments returns no rows', async () => {
-      vi.mocked(selectMoments).mockResolvedValue({ data: [], error: null });
+    it('omits momentId if getMomentsByAddressAndTokenId returns no rows', async () => {
+      vi.mocked(getMomentsByAddressAndTokenId).mockResolvedValue({
+        data: [],
+        error: null,
+      });
       vi.mocked(getTransfers).mockResolvedValue({ data: [], count: 0 });
 
       await getTransfersHandler({

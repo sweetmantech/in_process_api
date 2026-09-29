@@ -4,7 +4,7 @@ import { CHAIN_ID } from '@/lib/consts';
 import { createMomentSchema } from '@/lib/schema/createMomentSchema';
 import { ensureWallets } from '@/lib/wallets/ensureWallets';
 import selectCollections from '@/lib/supabase/in_process_collections/selectCollections';
-import selectMoments from '@/lib/supabase/in_process_moments/selectMoments';
+import getMomentsByAddressAndTokenId from '@/lib/moment/getMomentsByAddressAndTokenId';
 import { upsertCollections } from '@/lib/supabase/in_process_collections/upsertCollections';
 import { upsertMoments } from '@/lib/supabase/in_process_moments/upsertMoments';
 import upsertMomentMetadataFromUri from './upsertMomentMetadataFromUri';
@@ -38,7 +38,7 @@ const indexMoment = async ({
     chainId,
   });
 
-  const { data: existingMoments } = await selectMoments({
+  const { data: existingMoments } = await getMomentsByAddressAndTokenId({
     moments: [
       {
         collectionAddress: normalizedAddress as Address,

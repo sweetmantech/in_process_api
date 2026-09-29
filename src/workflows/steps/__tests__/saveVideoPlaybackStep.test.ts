@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('@/lib/supabase/in_process_moments/selectMoments', () => ({
+vi.mock('@/lib/moment/getMomentsByAddressAndTokenId', () => ({
   default: vi.fn(),
 }));
 vi.mock('@/lib/supabase/in_process_video_playback/upsertVideoPlayback', () => ({
@@ -11,11 +11,13 @@ vi.mock('@/lib/mux/findMuxAssetIdFromPlaybackUrl', () => ({
 }));
 
 import saveVideoPlaybackStep from '../saveVideoPlaybackStep';
-import selectMoments from '@/lib/supabase/in_process_moments/selectMoments';
+import getMomentsByAddressAndTokenId from '@/lib/moment/getMomentsByAddressAndTokenId';
 import upsertVideoPlayback from '@/lib/supabase/in_process_video_playback/upsertVideoPlayback';
 import { findMuxAssetIdFromPlaybackUrl } from '@/lib/mux/findMuxAssetIdFromPlaybackUrl';
 
-const mockSelectMoments = vi.mocked(selectMoments);
+const mockGetMomentsByAddressAndTokenId = vi.mocked(
+  getMomentsByAddressAndTokenId
+);
 const mockUpsert = vi.mocked(upsertVideoPlayback);
 const mockFindAssetId = vi.mocked(findMuxAssetIdFromPlaybackUrl);
 
@@ -36,7 +38,7 @@ const dbMoment = (over: Record<string, unknown> = {}) => ({
 describe('saveVideoPlaybackStep', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockSelectMoments.mockResolvedValue({
+    mockGetMomentsByAddressAndTokenId.mockResolvedValue({
       data: [dbMoment()],
       error: null,
     } as never);
@@ -47,7 +49,7 @@ describe('saveVideoPlaybackStep', () => {
   it('records the Mux asset as ready playback for the moment', async () => {
     const result = await saveVideoPlaybackStep(moment, PLAYBACK_URL);
 
-    expect(mockSelectMoments).toHaveBeenCalledWith({
+    expect(mockGetMomentsByAddressAndTokenId).toHaveBeenCalledWith({
       moments: [moment],
       chainId: 8453,
     });
@@ -65,7 +67,7 @@ describe('saveVideoPlaybackStep', () => {
   });
 
   it('ignores moments from other tokens', async () => {
-    mockSelectMoments.mockResolvedValue({
+    mockGetMomentsByAddressAndTokenId.mockResolvedValue({
       data: [dbMoment({ token_id: 8 })],
       error: null,
     } as never);
@@ -77,7 +79,10 @@ describe('saveVideoPlaybackStep', () => {
   });
 
   it('throws so the workflow retries when the moment is not indexed yet', async () => {
-    mockSelectMoments.mockResolvedValue({ data: [], error: null } as never);
+    mockGetMomentsByAddressAndTokenId.mockResolvedValue({
+      data: [],
+      error: null,
+    } as never);
 
     await expect(saveVideoPlaybackStep(moment, PLAYBACK_URL)).rejects.toThrow(
       'Moment not indexed yet'
@@ -106,6 +111,6 @@ describe('saveVideoPlaybackStep', () => {
     await expect(
       saveVideoPlaybackStep(moment, 'https://example.com/video.mp4')
     ).rejects.toThrow('Not a Mux playback URL');
-    expect(mockSelectMoments).not.toHaveBeenCalled();
+    expect(mockGetMomentsByAddressAndTokenId).not.toHaveBeenCalled();
   });
 });

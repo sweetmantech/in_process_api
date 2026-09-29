@@ -1,10 +1,10 @@
 import type { Address } from 'viem';
-import selectMoments from '@/lib/supabase/in_process_moments/selectMoments';
+import getMomentsByAddressAndTokenId from '@/lib/moment/getMomentsByAddressAndTokenId';
 import type { Transfers_t } from '@/types/envio';
 
 /** The moment's metadata name, or a "moment #<tokenId>" fallback when it has none. */
 const getMomentTitleForTransfer = async (t: Transfers_t): Promise<string> => {
-  const { data } = await selectMoments({
+  const { data } = await getMomentsByAddressAndTokenId({
     moments: [
       {
         collectionAddress: t.collection.toLowerCase() as Address,

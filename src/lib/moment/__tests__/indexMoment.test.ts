@@ -10,7 +10,7 @@ vi.mock('@/lib/supabase/in_process_collections/selectCollections', () => ({
 vi.mock('@/lib/supabase/in_process_collections/upsertCollections', () => ({
   upsertCollections: vi.fn(),
 }));
-vi.mock('@/lib/supabase/in_process_moments/selectMoments', () => ({
+vi.mock('@/lib/moment/getMomentsByAddressAndTokenId', () => ({
   default: vi.fn(),
 }));
 vi.mock('@/lib/supabase/in_process_moments/upsertMoments', () => ({
@@ -23,7 +23,7 @@ vi.mock('../upsertMomentMetadataFromUri', () => ({
 import { ensureWallets } from '@/lib/wallets/ensureWallets';
 import selectCollections from '@/lib/supabase/in_process_collections/selectCollections';
 import { upsertCollections } from '@/lib/supabase/in_process_collections/upsertCollections';
-import selectMoments from '@/lib/supabase/in_process_moments/selectMoments';
+import getMomentsByAddressAndTokenId from '@/lib/moment/getMomentsByAddressAndTokenId';
 import { upsertMoments } from '@/lib/supabase/in_process_moments/upsertMoments';
 import upsertMomentMetadataFromUri from '../upsertMomentMetadataFromUri';
 
@@ -48,7 +48,7 @@ beforeEach(() => {
   vi.mocked(upsertCollections).mockResolvedValue([
     { id: COLLECTION_ID },
   ] as never);
-  vi.mocked(selectMoments).mockResolvedValue({
+  vi.mocked(getMomentsByAddressAndTokenId).mockResolvedValue({
     data: null,
     error: null,
   } as never);
@@ -103,7 +103,7 @@ describe('indexMoment', () => {
     vi.mocked(selectCollections).mockResolvedValue([
       { id: COLLECTION_ID },
     ] as never);
-    vi.mocked(selectMoments).mockResolvedValue({
+    vi.mocked(getMomentsByAddressAndTokenId).mockResolvedValue({
       data: [
         {
           id: MOMENT_ID,
@@ -144,7 +144,7 @@ describe('indexMoment', () => {
 
   it('updates uri and metadata when moment already exists', async () => {
     const existingId = 'existing-moment-id';
-    vi.mocked(selectMoments).mockResolvedValue({
+    vi.mocked(getMomentsByAddressAndTokenId).mockResolvedValue({
       data: [
         {
           id: existingId,

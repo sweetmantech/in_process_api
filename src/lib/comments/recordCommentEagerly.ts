@@ -1,7 +1,7 @@
 import { Address, Log, parseEventLogs, zeroHash } from 'viem';
 import { commentsABI } from '@zoralabs/protocol-deployments';
 import { COMMENTS_ADDRESS } from '@/lib/consts';
-import selectMoments from '@/lib/supabase/in_process_moments/selectMoments';
+import getMomentsByAddressAndTokenId from '@/lib/moment/getMomentsByAddressAndTokenId';
 import { upsertComments } from '@/lib/supabase/in_process_moment_comments/upsertComments';
 import { ensureWallets } from '@/lib/wallets/ensureWallets';
 
@@ -42,7 +42,7 @@ export async function recordCommentEagerly({
     );
     if (!commentedLog) return;
 
-    const { data: moments } = await selectMoments({
+    const { data: moments } = await getMomentsByAddressAndTokenId({
       moments: [{ collectionAddress, tokenId, chainId }],
       limit: 1,
     });

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import transfersQuerySchema from '@/lib/schema/transfersQuerySchema';
 import getTransfers from '@/lib/transfers/getTransfers';
-import selectMoments from '@/lib/supabase/in_process_moments/selectMoments';
+import getMomentsByAddressAndTokenId from '@/lib/moment/getMomentsByAddressAndTokenId';
 import { Transfer_Type } from '@/types/transfer';
 import normalizeTransfer from './normalizeTransfer';
 
@@ -14,7 +14,7 @@ const getTransfersHandler = async (params: TransfersParams) => {
   const { collection, tokenId, chainId, type, page, limit } = params;
   let momentId = params.momentId;
   if (collection !== undefined && tokenId !== undefined) {
-    const { data: moments } = await selectMoments({
+    const { data: moments } = await getMomentsByAddressAndTokenId({
       moments: [
         { collectionAddress: collection, tokenId: String(tokenId), chainId },
       ],

@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { momentCollectors } from '../momentCollectors';
 import type { Address } from 'viem';
 
-vi.mock('../../supabase/in_process_moments/selectMoments', () => ({
+vi.mock('@/lib/moment/getMomentsByAddressAndTokenId', () => ({
   default: vi.fn(),
 }));
 
@@ -10,10 +10,12 @@ vi.mock('../../supabase/in_process_transfers/selectCollectors', () => ({
   default: vi.fn(),
 }));
 
-import selectMoments from '../../supabase/in_process_moments/selectMoments';
+import getMomentsByAddressAndTokenId from '@/lib/moment/getMomentsByAddressAndTokenId';
 import selectCollectors from '../../supabase/in_process_transfers/selectCollectors';
 
-const mockSelectMoments = vi.mocked(selectMoments);
+const mockGetMomentsByAddressAndTokenId = vi.mocked(
+  getMomentsByAddressAndTokenId
+);
 const mockSelectCollectors = vi.mocked(selectCollectors);
 
 const validInput = {
@@ -31,7 +33,7 @@ describe('momentCollectors', () => {
   });
 
   it('should return formatted collectors', async () => {
-    mockSelectMoments.mockResolvedValue({
+    mockGetMomentsByAddressAndTokenId.mockResolvedValue({
       data: [{ id: 'moment-1' }],
       error: null,
     } as any);
@@ -62,7 +64,7 @@ describe('momentCollectors', () => {
       ],
     });
 
-    expect(mockSelectMoments).toHaveBeenCalledWith({
+    expect(mockGetMomentsByAddressAndTokenId).toHaveBeenCalledWith({
       moments: [validInput.moment],
     });
     expect(mockSelectCollectors).toHaveBeenCalledWith({
@@ -72,7 +74,7 @@ describe('momentCollectors', () => {
   });
 
   it('should default username to empty string when null', async () => {
-    mockSelectMoments.mockResolvedValue({
+    mockGetMomentsByAddressAndTokenId.mockResolvedValue({
       data: [{ id: 'moment-1' }],
       error: null,
     } as any);
@@ -93,7 +95,7 @@ describe('momentCollectors', () => {
   });
 
   it('should default timestamp to 0 when collected_at is null', async () => {
-    mockSelectMoments.mockResolvedValue({
+    mockGetMomentsByAddressAndTokenId.mockResolvedValue({
       data: [{ id: 'moment-1' }],
       error: null,
     } as any);
@@ -113,8 +115,8 @@ describe('momentCollectors', () => {
     expect(result.collectors[0].timestamp).toBe(0);
   });
 
-  it('should throw when selectMoments returns an error', async () => {
-    mockSelectMoments.mockResolvedValue({
+  it('should throw when getMomentsByAddressAndTokenId returns an error', async () => {
+    mockGetMomentsByAddressAndTokenId.mockResolvedValue({
       data: null,
       error: { message: 'db error' },
     } as any);
@@ -125,7 +127,7 @@ describe('momentCollectors', () => {
   });
 
   it('should throw when moment is not found', async () => {
-    mockSelectMoments.mockResolvedValue({
+    mockGetMomentsByAddressAndTokenId.mockResolvedValue({
       data: [],
       error: null,
     } as any);
@@ -136,7 +138,7 @@ describe('momentCollectors', () => {
   });
 
   it('should pass offset to selectCollectors', async () => {
-    mockSelectMoments.mockResolvedValue({
+    mockGetMomentsByAddressAndTokenId.mockResolvedValue({
       data: [{ id: 'moment-1' }],
       error: null,
     } as any);
@@ -153,7 +155,7 @@ describe('momentCollectors', () => {
   });
 
   it('should return empty collectors array when none exist', async () => {
-    mockSelectMoments.mockResolvedValue({
+    mockGetMomentsByAddressAndTokenId.mockResolvedValue({
       data: [{ id: 'moment-1' }],
       error: null,
     } as any);
