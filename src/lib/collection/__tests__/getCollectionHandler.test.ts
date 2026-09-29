@@ -63,12 +63,13 @@ describe('getCollectionHandler', () => {
     expect(body.admins).toEqual(['0xaaa', '0xzzz']);
   });
 
-  it('calls selectCollections with address and chainId', async () => {
+  it('calls selectCollections with address and chainId, including the creator', async () => {
     await getCollectionHandler(baseInput);
 
     expect(selectCollections).toHaveBeenCalledWith({
       addresses: ['0xabc'],
       chainId: 8453,
+      includeCreator: true,
     });
   });
 

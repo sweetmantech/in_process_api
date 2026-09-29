@@ -1,5 +1,5 @@
 import { Moment } from '@/types/moment';
-import selectCollectionIdsByAddresses from '@/lib/supabase/in_process_collections/selectCollectionIdsByAddresses';
+import selectCollections from '@/lib/supabase/in_process_collections/selectCollections';
 import selectMoments, {
   SelectedMoment,
 } from '@/lib/supabase/in_process_moments/selectMoments';
@@ -31,12 +31,13 @@ const getMomentsByAddressAndTokenId = async ({
   const addresses = [
     ...new Set(moments.map((m) => m.collectionAddress.toLowerCase())),
   ];
-  const { data: collections, error } = await selectCollectionIdsByAddresses(
-    addresses,
-    chainId
-  );
-  if (error) return { data: null, error };
-  if (!collections?.length) return { data: [], error: null };
+  let collections;
+  try {
+    collections = await selectCollections({ addresses, chainId });
+  } catch (error) {
+    return { data: null, error: error as { message: string } };
+  }
+  if (!collections.length) return { data: [], error: null };
 
   return selectMoments({
     collectionIds: collections.map((c) => c.id),

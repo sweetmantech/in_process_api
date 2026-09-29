@@ -88,6 +88,7 @@ describe('getAirdropOperator', () => {
       expect(mockSelectCollections).toHaveBeenCalledWith({
         addresses: [collectionAddress],
         chainId,
+        includeCreator: true,
       });
       expect(mockIsCb).not.toHaveBeenCalled();
       expect(result).toEqual({
