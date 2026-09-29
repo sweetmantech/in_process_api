@@ -1,7 +1,6 @@
 import { supabase } from '../client';
 import type { Tables } from '@/lib/supabase/types';
 
-// Only present when selected with includeCreator.
 export type SelectedCollection = Tables<'in_process_collections'> & {
   creator_wallet?: { artist: { username: string | null } | null } | null;
 };
@@ -24,11 +23,8 @@ const selectCollections = async ({
   uri?: string;
   chainId?: number;
   limit?: number;
-  /** Also join the creator's wallet -> artist username (two extra lookups per row). */
   includeCreator?: boolean;
 } = {}): Promise<SelectedCollection[]> => {
-  // A conditional select string defeats supabase-js type inference, so the
-  // columns are passed as a plain string and the row type is declared above.
   const columns: string = includeCreator ? COLUMNS_WITH_CREATOR : '*';
   let query = supabase.from('in_process_collections').select(columns);
 
