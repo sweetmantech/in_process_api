@@ -15,6 +15,7 @@ const getCollectionHandler = async ({
   const collections = await selectCollections({
     addresses: [collectionAddress],
     chainId,
+    includeCreator: true,
   });
   const collection = collections?.[0] ?? null;
 

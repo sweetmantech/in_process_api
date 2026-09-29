@@ -28,6 +28,7 @@ const getAirdropOperator = async (
     const collections = await selectCollections({
       addresses: [t.collection],
       chainId,
+      includeCreator: true,
     });
     const collection = collections?.[0];
     if (collection) {
