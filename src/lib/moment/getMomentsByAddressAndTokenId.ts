@@ -12,7 +12,7 @@ import selectMoments, {
  * collection.address instead made Postgres walk in_process_moments by
  * created_at, reading most of the table for older moments.
  */
-const findMoments = async ({
+const getMomentsByAddressAndTokenId = async ({
   moments,
   chainId,
   limit,
@@ -47,4 +47,4 @@ const findMoments = async ({
   });
 };
 
-export default findMoments;
+export default getMomentsByAddressAndTokenId;

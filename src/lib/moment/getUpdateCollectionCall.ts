@@ -13,7 +13,7 @@ import getTokenSetupActions from './getTokenSetupActions';
 import createMomentBatchCall from '@/lib/viem/createMomentBatchCall';
 import selectCollections from '@/lib/supabase/in_process_collections/selectCollections';
 import selectAdmins from '@/lib/supabase/in_process_admins/selectAdmins';
-import findMoments from '@/lib/moment/findMoments';
+import getMomentsByAddressAndTokenId from '@/lib/moment/getMomentsByAddressAndTokenId';
 
 const getUpdateCollectionCall = async ({
   moment,
@@ -26,7 +26,7 @@ const getUpdateCollectionCall = async ({
       addresses: [contract.address],
       chainId: moment.chainId,
     }),
-    findMoments({ moments: [moment] }),
+    getMomentsByAddressAndTokenId({ moments: [moment] }),
   ]);
 
   const dbMoment = dbMoments?.[0];

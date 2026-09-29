@@ -1,14 +1,15 @@
 import { z } from 'zod';
 import { commentsSchema } from '../schema/commentsSchema';
-import findMoments from '@/lib/moment/findMoments';
+import getMomentsByAddressAndTokenId from '@/lib/moment/getMomentsByAddressAndTokenId';
 import selectCollectors from '../supabase/in_process_transfers/selectCollectors';
 
 export type GetCollectorsInput = z.infer<typeof commentsSchema>;
 
 export async function momentCollectors({ moment, offset }: GetCollectorsInput) {
-  const { data: moments, error: momentsError } = await findMoments({
-    moments: [moment],
-  });
+  const { data: moments, error: momentsError } =
+    await getMomentsByAddressAndTokenId({
+      moments: [moment],
+    });
 
   if (momentsError) {
     throw new Error('Failed to get moments');

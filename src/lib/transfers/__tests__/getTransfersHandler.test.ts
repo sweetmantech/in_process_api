@@ -5,12 +5,12 @@ vi.mock('@/lib/transfers/getTransfers', () => ({
   default: vi.fn(),
 }));
 
-vi.mock('@/lib/moment/findMoments', () => ({
+vi.mock('@/lib/moment/getMomentsByAddressAndTokenId', () => ({
   default: vi.fn(),
 }));
 
 import getTransfers from '@/lib/transfers/getTransfers';
-import findMoments from '@/lib/moment/findMoments';
+import getMomentsByAddressAndTokenId from '@/lib/moment/getMomentsByAddressAndTokenId';
 import getTransfersHandler from '@/lib/transfers/getTransfersHandler';
 
 const BASE_PARAMS = {
@@ -370,8 +370,8 @@ describe('getTransfersHandler', () => {
   });
 
   describe('moment pre-resolve', () => {
-    it('resolves momentId via findMoments when collection and tokenId are provided', async () => {
-      vi.mocked(findMoments).mockResolvedValue({
+    it('resolves momentId via getMomentsByAddressAndTokenId when collection and tokenId are provided', async () => {
+      vi.mocked(getMomentsByAddressAndTokenId).mockResolvedValue({
         data: [{ id: 'moment-uuid-123' }] as any,
         error: null,
       });
@@ -388,16 +388,19 @@ describe('getTransfersHandler', () => {
       );
     });
 
-    it('does not call findMoments when collection and tokenId are absent', async () => {
+    it('does not call getMomentsByAddressAndTokenId when collection and tokenId are absent', async () => {
       vi.mocked(getTransfers).mockResolvedValue({ data: [], count: 0 });
 
       await getTransfersHandler(BASE_PARAMS);
 
-      expect(findMoments).not.toHaveBeenCalled();
+      expect(getMomentsByAddressAndTokenId).not.toHaveBeenCalled();
     });
 
-    it('omits momentId if findMoments returns no rows', async () => {
-      vi.mocked(findMoments).mockResolvedValue({ data: [], error: null });
+    it('omits momentId if getMomentsByAddressAndTokenId returns no rows', async () => {
+      vi.mocked(getMomentsByAddressAndTokenId).mockResolvedValue({
+        data: [],
+        error: null,
+      });
       vi.mocked(getTransfers).mockResolvedValue({ data: [], count: 0 });
 
       await getTransfersHandler({

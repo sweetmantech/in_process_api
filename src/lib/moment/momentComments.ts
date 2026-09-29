@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { commentsSchema } from '../schema/commentsSchema';
-import findMoments from '@/lib/moment/findMoments';
+import getMomentsByAddressAndTokenId from '@/lib/moment/getMomentsByAddressAndTokenId';
 import getMomentCommentsRpc from '../supabase/in_process_moment_comments/getMomentCommentsRpc';
 import { MomentCommentsResult } from '@/types/moment';
 
@@ -11,9 +11,10 @@ export async function momentComments({
   offset,
   replyToId,
 }: GetCommentsInput): Promise<MomentCommentsResult> {
-  const { data: moments, error: momentsError } = await findMoments({
-    moments: [moment],
-  });
+  const { data: moments, error: momentsError } =
+    await getMomentsByAddressAndTokenId({
+      moments: [moment],
+    });
 
   if (momentsError) {
     throw new Error('Failed to get moments');

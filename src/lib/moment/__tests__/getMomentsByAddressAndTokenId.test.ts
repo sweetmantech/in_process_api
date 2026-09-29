@@ -8,7 +8,7 @@ vi.mock('@/lib/supabase/in_process_moments/selectMoments', () => ({
   default: vi.fn(),
 }));
 
-import findMoments from '../findMoments';
+import getMomentsByAddressAndTokenId from '../getMomentsByAddressAndTokenId';
 import selectCollectionIdsByAddresses from '@/lib/supabase/in_process_collections/selectCollectionIdsByAddresses';
 import selectMoments from '@/lib/supabase/in_process_moments/selectMoments';
 
@@ -28,7 +28,7 @@ const moments = [
   },
 ];
 
-describe('findMoments', () => {
+describe('getMomentsByAddressAndTokenId', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockSelectCollectionIds.mockResolvedValue({
@@ -42,7 +42,7 @@ describe('findMoments', () => {
   });
 
   it('resolves collection ids, then selects moments by collection + token ids', async () => {
-    const result = await findMoments({
+    const result = await getMomentsByAddressAndTokenId({
       moments,
       limit: 1,
       includeMetadata: true,
@@ -63,7 +63,7 @@ describe('findMoments', () => {
   });
 
   it('passes chainId to both lookups', async () => {
-    await findMoments({ moments, chainId: 1 });
+    await getMomentsByAddressAndTokenId({ moments, chainId: 1 });
 
     expect(mockSelectCollectionIds).toHaveBeenCalledWith(
       ['0xabefbc9fd2f806065b4f3c237d4b59d9a97bcac7'],
@@ -80,7 +80,7 @@ describe('findMoments', () => {
       error: null,
     } as never);
 
-    await expect(findMoments({ moments })).resolves.toEqual({
+    await expect(getMomentsByAddressAndTokenId({ moments })).resolves.toEqual({
       data: [],
       error: null,
     });
@@ -88,7 +88,9 @@ describe('findMoments', () => {
   });
 
   it('returns nothing for an empty key list instead of selecting every moment', async () => {
-    await expect(findMoments({ moments: [] })).resolves.toEqual({
+    await expect(
+      getMomentsByAddressAndTokenId({ moments: [] })
+    ).resolves.toEqual({
       data: [],
       error: null,
     });
@@ -101,7 +103,7 @@ describe('findMoments', () => {
       error: { message: 'db down' },
     } as never);
 
-    await expect(findMoments({ moments })).resolves.toEqual({
+    await expect(getMomentsByAddressAndTokenId({ moments })).resolves.toEqual({
       data: null,
       error: { message: 'db down' },
     });

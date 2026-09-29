@@ -4,7 +4,7 @@ vi.mock('viem', async (importOriginal) => {
   const actual = await importOriginal<typeof import('viem')>();
   return { ...actual, parseEventLogs: vi.fn() };
 });
-vi.mock('@/lib/moment/findMoments', () => ({
+vi.mock('@/lib/moment/getMomentsByAddressAndTokenId', () => ({
   default: vi.fn(),
 }));
 vi.mock('@/lib/supabase/in_process_moment_comments/upsertComments', () => ({
@@ -15,13 +15,15 @@ vi.mock('@/lib/wallets/ensureWallets', () => ({
 }));
 
 import { parseEventLogs } from 'viem';
-import findMoments from '@/lib/moment/findMoments';
+import getMomentsByAddressAndTokenId from '@/lib/moment/getMomentsByAddressAndTokenId';
 import { upsertComments } from '@/lib/supabase/in_process_moment_comments/upsertComments';
 import { ensureWallets } from '@/lib/wallets/ensureWallets';
 import { recordCommentEagerly } from '@/lib/comments/recordCommentEagerly';
 
 const mockParseEventLogs = vi.mocked(parseEventLogs);
-const mockSelectMoments = vi.mocked(findMoments);
+const mockGetMomentsByAddressAndTokenId = vi.mocked(
+  getMomentsByAddressAndTokenId
+);
 const mockUpsertComments = vi.mocked(upsertComments);
 const mockEnsureWallets = vi.mocked(ensureWallets);
 
@@ -63,7 +65,7 @@ describe('recordCommentEagerly', () => {
       text: 'hi',
     });
 
-    expect(mockSelectMoments).not.toHaveBeenCalled();
+    expect(mockGetMomentsByAddressAndTokenId).not.toHaveBeenCalled();
   });
 
   it('does nothing when the moment has no Supabase row yet', async () => {
@@ -78,7 +80,10 @@ describe('recordCommentEagerly', () => {
         },
       } as any,
     ]);
-    mockSelectMoments.mockResolvedValue({ data: [], error: null });
+    mockGetMomentsByAddressAndTokenId.mockResolvedValue({
+      data: [],
+      error: null,
+    });
 
     await recordCommentEagerly({
       logs: [{} as any],
@@ -106,7 +111,7 @@ describe('recordCommentEagerly', () => {
         },
       } as any,
     ]);
-    mockSelectMoments.mockResolvedValue({
+    mockGetMomentsByAddressAndTokenId.mockResolvedValue({
       data: [{ id: 'moment-uuid' } as any],
       error: null,
     });
@@ -151,7 +156,7 @@ describe('recordCommentEagerly', () => {
         },
       } as any,
     ]);
-    mockSelectMoments.mockResolvedValue({
+    mockGetMomentsByAddressAndTokenId.mockResolvedValue({
       data: [{ id: 'moment-uuid' } as any],
       error: null,
     });

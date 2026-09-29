@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('@/lib/moment/findMoments', () => ({
+vi.mock('@/lib/moment/getMomentsByAddressAndTokenId', () => ({
   default: vi.fn(),
 }));
 
 import { getMomentIdMap } from '../getMomentIdMap';
-import findMoments from '@/lib/moment/findMoments';
+import getMomentsByAddressAndTokenId from '@/lib/moment/getMomentsByAddressAndTokenId';
 import type {
   InProcess_Admins_t,
   InProcess_Airdrops_t,
@@ -14,7 +14,9 @@ import type {
   Transfers_t,
 } from '@/types/envio';
 
-const mockSelectMoments = vi.mocked(findMoments);
+const mockGetMomentsByAddressAndTokenId = vi.mocked(
+  getMomentsByAddressAndTokenId
+);
 
 const adminEntity = (): InProcess_Admins_t => ({
   id: '1',
@@ -89,14 +91,14 @@ const momentRow = (
 describe('getMomentIdMap', () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it('returns empty map for empty input without calling findMoments', async () => {
+  it('returns empty map for empty input without calling getMomentsByAddressAndTokenId', async () => {
     const result = await getMomentIdMap([]);
     expect(result.size).toBe(0);
-    expect(mockSelectMoments).not.toHaveBeenCalled();
+    expect(mockGetMomentsByAddressAndTokenId).not.toHaveBeenCalled();
   });
 
   it('returns map keyed by lowercase collection:chainId:tokenId (admins)', async () => {
-    mockSelectMoments.mockResolvedValue({
+    mockGetMomentsByAddressAndTokenId.mockResolvedValue({
       data: [momentRow('moment-uuid', '0xCOL', 8453, '3')],
       error: null,
     } as never);
@@ -105,15 +107,15 @@ describe('getMomentIdMap', () => {
     expect(result.get('0xcol:8453:3')).toBe('moment-uuid');
   });
 
-  it('requests moments from findMoments with collectionAddress, tokenId, chainId', async () => {
-    mockSelectMoments.mockResolvedValue({
+  it('requests moments from getMomentsByAddressAndTokenId with collectionAddress, tokenId, chainId', async () => {
+    mockGetMomentsByAddressAndTokenId.mockResolvedValue({
       data: [momentRow('m1', '0xCOL', 8453, '3')],
       error: null,
     } as never);
 
     await getMomentIdMap([adminEntity()]);
 
-    expect(mockSelectMoments).toHaveBeenCalledWith({
+    expect(mockGetMomentsByAddressAndTokenId).toHaveBeenCalledWith({
       moments: [
         {
           collectionAddress: '0xCOL',
@@ -125,14 +127,14 @@ describe('getMomentIdMap', () => {
   });
 
   it('works for Transfers_t (Envio unified transfers)', async () => {
-    mockSelectMoments.mockResolvedValue({
+    mockGetMomentsByAddressAndTokenId.mockResolvedValue({
       data: [momentRow('moment-from-transfer', '0xCOL', 8453, '3')],
       error: null,
     } as never);
 
     const result = await getMomentIdMap([transferEntity()]);
     expect(result.get('0xcol:8453:3')).toBe('moment-from-transfer');
-    expect(mockSelectMoments).toHaveBeenCalledWith({
+    expect(mockGetMomentsByAddressAndTokenId).toHaveBeenCalledWith({
       moments: [
         {
           collectionAddress: '0xCOL',
@@ -144,7 +146,7 @@ describe('getMomentIdMap', () => {
   });
 
   it('works for Primary_Sales_t', async () => {
-    mockSelectMoments.mockResolvedValue({
+    mockGetMomentsByAddressAndTokenId.mockResolvedValue({
       data: [momentRow('sale-m', '0xCOL', 8453, '3')],
       error: null,
     } as never);
@@ -154,7 +156,7 @@ describe('getMomentIdMap', () => {
   });
 
   it('works for InProcess_Airdrops_t', async () => {
-    mockSelectMoments.mockResolvedValue({
+    mockGetMomentsByAddressAndTokenId.mockResolvedValue({
       data: [momentRow('air-m', '0xCOL', 8453, '3')],
       error: null,
     } as never);
@@ -164,7 +166,7 @@ describe('getMomentIdMap', () => {
   });
 
   it('works for InProcess_Comments_t', async () => {
-    mockSelectMoments.mockResolvedValue({
+    mockGetMomentsByAddressAndTokenId.mockResolvedValue({
       data: [momentRow('com-m', '0xCOL', 8453, '3')],
       error: null,
     } as never);
@@ -174,14 +176,14 @@ describe('getMomentIdMap', () => {
   });
 
   it('passes one moments[] entry per entity when triplets repeat (no upstream dedupe)', async () => {
-    mockSelectMoments.mockResolvedValue({
+    mockGetMomentsByAddressAndTokenId.mockResolvedValue({
       data: [momentRow('one', '0xCOL', 8453, '3')],
       error: null,
     } as never);
 
     await getMomentIdMap([transferEntity(), transferEntity()]);
 
-    expect(mockSelectMoments).toHaveBeenCalledWith({
+    expect(mockGetMomentsByAddressAndTokenId).toHaveBeenCalledWith({
       moments: [
         { collectionAddress: '0xCOL', tokenId: '3', chainId: 8453 },
         { collectionAddress: '0xCOL', tokenId: '3', chainId: 8453 },
@@ -190,7 +192,7 @@ describe('getMomentIdMap', () => {
   });
 
   it('ignores moments not in the requested entities', async () => {
-    mockSelectMoments.mockResolvedValue({
+    mockGetMomentsByAddressAndTokenId.mockResolvedValue({
       data: [
         momentRow('mom-1', '0xcol', 8453, '3'),
         momentRow('mom-2', '0xother', 8453, '99'),
@@ -203,8 +205,8 @@ describe('getMomentIdMap', () => {
     expect(result.has('0xother:8453:99')).toBe(false);
   });
 
-  it('throws when findMoments returns an error', async () => {
-    mockSelectMoments.mockResolvedValue({
+  it('throws when getMomentsByAddressAndTokenId returns an error', async () => {
+    mockGetMomentsByAddressAndTokenId.mockResolvedValue({
       data: null,
       error: new Error('db error'),
     } as never);

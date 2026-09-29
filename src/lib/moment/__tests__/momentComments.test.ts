@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('@/lib/moment/findMoments', () => ({
+vi.mock('@/lib/moment/getMomentsByAddressAndTokenId', () => ({
   default: vi.fn(),
 }));
 vi.mock(
@@ -11,10 +11,12 @@ vi.mock(
 );
 
 import { momentComments } from '../momentComments';
-import findMoments from '@/lib/moment/findMoments';
+import getMomentsByAddressAndTokenId from '@/lib/moment/getMomentsByAddressAndTokenId';
 import getMomentCommentsRpc from '../../supabase/in_process_moment_comments/getMomentCommentsRpc';
 
-const mockSelectMoments = vi.mocked(findMoments);
+const mockGetMomentsByAddressAndTokenId = vi.mocked(
+  getMomentsByAddressAndTokenId
+);
 const mockRpc = vi.mocked(getMomentCommentsRpc);
 
 const validInput = {
@@ -31,7 +33,7 @@ describe('momentComments', () => {
   beforeEach(() => vi.clearAllMocks());
 
   it('returns RPC comments for a moment', async () => {
-    mockSelectMoments.mockResolvedValue({
+    mockGetMomentsByAddressAndTokenId.mockResolvedValue({
       data: [{ id: 'moment-1' }],
       error: null,
     } as any);
@@ -62,7 +64,7 @@ describe('momentComments', () => {
   });
 
   it('passes replyToId to RPC', async () => {
-    mockSelectMoments.mockResolvedValue({
+    mockGetMomentsByAddressAndTokenId.mockResolvedValue({
       data: [{ id: 'moment-1' }],
       error: null,
     } as any);
@@ -77,8 +79,8 @@ describe('momentComments', () => {
     });
   });
 
-  it('throws when findMoments returns error', async () => {
-    mockSelectMoments.mockResolvedValue({
+  it('throws when getMomentsByAddressAndTokenId returns error', async () => {
+    mockGetMomentsByAddressAndTokenId.mockResolvedValue({
       data: null,
       error: { message: 'db error' },
     } as any);
@@ -88,7 +90,10 @@ describe('momentComments', () => {
   });
 
   it('throws when moment is not found', async () => {
-    mockSelectMoments.mockResolvedValue({ data: [], error: null } as any);
+    mockGetMomentsByAddressAndTokenId.mockResolvedValue({
+      data: [],
+      error: null,
+    } as any);
     await expect(momentComments(validInput)).rejects.toThrow(
       'Moment not found'
     );

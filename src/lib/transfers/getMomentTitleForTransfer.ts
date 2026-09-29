@@ -1,10 +1,10 @@
 import type { Address } from 'viem';
-import findMoments from '@/lib/moment/findMoments';
+import getMomentsByAddressAndTokenId from '@/lib/moment/getMomentsByAddressAndTokenId';
 import type { Transfers_t } from '@/types/envio';
 
 /** The moment's metadata name, or a "moment #<tokenId>" fallback when it has none. */
 const getMomentTitleForTransfer = async (t: Transfers_t): Promise<string> => {
-  const { data } = await findMoments({
+  const { data } = await getMomentsByAddressAndTokenId({
     moments: [
       {
         collectionAddress: t.collection.toLowerCase() as Address,

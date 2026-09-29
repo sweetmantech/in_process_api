@@ -11,7 +11,7 @@ vi.mock('@/authMiddleware', () => ({
   authMiddleware: vi.fn(),
 }));
 
-vi.mock('@/lib/moment/findMoments', () => ({
+vi.mock('@/lib/moment/getMomentsByAddressAndTokenId', () => ({
   default: vi.fn(),
 }));
 
@@ -20,7 +20,7 @@ vi.mock('@/lib/supabase/in_process_admins/selectAdmins', () => ({
 }));
 
 import { authMiddleware } from '@/authMiddleware';
-import findMoments from '@/lib/moment/findMoments';
+import getMomentsByAddressAndTokenId from '@/lib/moment/getMomentsByAddressAndTokenId';
 import selectAdmins from '@/lib/supabase/in_process_admins/selectAdmins';
 import validateUpdateSaleBody from '@/lib/moment/validateUpdateSaleBody';
 
@@ -56,7 +56,7 @@ describe('validateUpdateSaleBody', () => {
     vi.mocked(authMiddleware).mockResolvedValue({
       primaryWallet: CALLER,
     } as any);
-    vi.mocked(findMoments).mockResolvedValue({
+    vi.mocked(getMomentsByAddressAndTokenId).mockResolvedValue({
       data: [mockMomentRow],
       error: null,
     } as any);
@@ -114,8 +114,8 @@ describe('validateUpdateSaleBody', () => {
     expect((result as NextResponse).status).toBe(400);
   });
 
-  it('returns 500 when findMoments errors', async () => {
-    vi.mocked(findMoments).mockResolvedValue({
+  it('returns 500 when getMomentsByAddressAndTokenId errors', async () => {
+    vi.mocked(getMomentsByAddressAndTokenId).mockResolvedValue({
       data: null,
       error: { message: 'DB error' },
     } as any);
@@ -129,7 +129,7 @@ describe('validateUpdateSaleBody', () => {
   });
 
   it('returns 403 when moment is not found', async () => {
-    vi.mocked(findMoments).mockResolvedValue({
+    vi.mocked(getMomentsByAddressAndTokenId).mockResolvedValue({
       data: [],
       error: null,
     } as any);

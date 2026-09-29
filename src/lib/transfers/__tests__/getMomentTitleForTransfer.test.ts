@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { Transfers_t } from '@/types/envio';
 
-vi.mock('@/lib/moment/findMoments', () => ({
+vi.mock('@/lib/moment/getMomentsByAddressAndTokenId', () => ({
   default: vi.fn(),
 }));
 
-import findMoments from '@/lib/moment/findMoments';
+import getMomentsByAddressAndTokenId from '@/lib/moment/getMomentsByAddressAndTokenId';
 import getMomentTitleForTransfer from '../getMomentTitleForTransfer';
 
 const makeTransfer = (overrides: Partial<Transfers_t> = {}): Transfers_t =>
@@ -22,7 +22,7 @@ beforeEach(() => {
 
 describe('getMomentTitleForTransfer', () => {
   it('returns the moment metadata name when present', async () => {
-    vi.mocked(findMoments).mockResolvedValue({
+    vi.mocked(getMomentsByAddressAndTokenId).mockResolvedValue({
       data: [{ metadata: { name: 'Telegram Demo with CY' } }],
       error: null,
     } as never);
@@ -30,7 +30,7 @@ describe('getMomentTitleForTransfer', () => {
     expect(await getMomentTitleForTransfer(makeTransfer())).toBe(
       'Telegram Demo with CY'
     );
-    expect(findMoments).toHaveBeenCalledWith({
+    expect(getMomentsByAddressAndTokenId).toHaveBeenCalledWith({
       moments: [
         { collectionAddress: '0xcollection', tokenId: '29', chainId: 8453 },
       ],
@@ -40,7 +40,7 @@ describe('getMomentTitleForTransfer', () => {
   });
 
   it('falls back to "moment #<tokenId>" when there is no name', async () => {
-    vi.mocked(findMoments).mockResolvedValue({
+    vi.mocked(getMomentsByAddressAndTokenId).mockResolvedValue({
       data: [{ metadata: { name: null } }],
       error: null,
     } as never);
@@ -49,7 +49,7 @@ describe('getMomentTitleForTransfer', () => {
   });
 
   it('falls back to "moment #<tokenId>" when the moment is not found', async () => {
-    vi.mocked(findMoments).mockResolvedValue({
+    vi.mocked(getMomentsByAddressAndTokenId).mockResolvedValue({
       data: [],
       error: null,
     } as never);

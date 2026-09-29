@@ -1,5 +1,5 @@
 import { Address } from 'viem';
-import findMoments from '@/lib/moment/findMoments';
+import getMomentsByAddressAndTokenId from '@/lib/moment/getMomentsByAddressAndTokenId';
 import upsertVideoPlayback from '@/lib/supabase/in_process_video_playback/upsertVideoPlayback';
 import { findMuxAssetIdFromPlaybackUrl } from '@/lib/mux/findMuxAssetIdFromPlaybackUrl';
 import getMuxPlaybackIdFromUrl from '@/lib/mux/getMuxPlaybackIdFromUrl';
@@ -13,7 +13,7 @@ export default async function saveVideoPlaybackStep(
   const playbackId = getMuxPlaybackIdFromUrl(playbackUrl);
   if (!playbackId) throw new Error(`Not a Mux playback URL: ${playbackUrl}`);
 
-  const { data, error } = await findMoments({
+  const { data, error } = await getMomentsByAddressAndTokenId({
     moments: [moment],
     chainId: moment.chainId,
   });
