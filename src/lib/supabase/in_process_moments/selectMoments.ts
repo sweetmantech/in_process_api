@@ -1,6 +1,7 @@
 import { supabase } from '../client';
 import { Moment } from '@/types/moment';
 import type { Database } from '@/lib/supabase/types';
+import selectCollectionIdsByAddresses from '@/lib/supabase/in_process_collections/selectCollectionIdsByAddresses';
 import {
   momentsWithCollectionAndMetadataQuery,
   momentsWithCollectionQuery,
@@ -54,10 +55,26 @@ async function selectMoments(args: SelectMomentsArgs = {}): Promise<{
     );
 
   if (args.moments?.length) {
+    // Resolve collection ids first so moments are found through the
+    // (collection, token_id) unique index. Filtering on the embedded
+    // collection.address instead made Postgres walk moments by created_at,
+    // reading most of the table for older moments (statement timeouts).
+    const { data: collections, error: collectionsError } =
+      await selectCollectionIdsByAddresses(
+        [
+          ...new Set(
+            args.moments.map((m) => m.collectionAddress.toLowerCase())
+          ),
+        ],
+        args.chainId
+      );
+    if (collectionsError) return { data: null, error: collectionsError };
+    if (!collections?.length) return { data: [], error: null };
+
     query = query
       .in(
-        'collection.address',
-        args.moments.map((m) => m.collectionAddress.toLowerCase())
+        'collection',
+        collections.map((c) => c.id)
       )
       .in(
         'token_id',
