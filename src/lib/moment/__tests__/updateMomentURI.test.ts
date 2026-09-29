@@ -20,7 +20,7 @@ vi.mock('@/lib/moment/indexMoment', () => ({
   default: vi.fn(),
 }));
 
-vi.mock('@/lib/supabase/in_process_moments/selectMoments', () => ({
+vi.mock('@/lib/moment/findMoments', () => ({
   default: vi.fn(),
 }));
 
@@ -29,7 +29,7 @@ import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
 import getUpdateTokenURICall from '@/lib/viem/getUpdateTokenURICall';
 import getUpdateCollectionCall from '@/lib/moment/getUpdateCollectionCall';
 import indexMoment from '@/lib/moment/indexMoment';
-import selectMoments from '@/lib/supabase/in_process_moments/selectMoments';
+import findMoments from '@/lib/moment/findMoments';
 import { updateMomentURI } from '@/lib/moment/updateMomentURI';
 
 const COLLECTION = '0x1111111111111111111111111111111111111111' as const;
@@ -65,7 +65,7 @@ describe('updateMomentURI', () => {
     vi.mocked(sendUserOperation).mockResolvedValue({
       transactionHash: TX_HASH,
     } as any);
-    vi.mocked(selectMoments).mockResolvedValue({
+    vi.mocked(findMoments).mockResolvedValue({
       data: [{ max_supply: 100 }],
       error: null,
     } as any);
@@ -94,7 +94,7 @@ describe('updateMomentURI', () => {
   it('indexes updated metadata after the transaction', async () => {
     await updateMomentURI(baseInput);
 
-    expect(selectMoments).not.toHaveBeenCalled();
+    expect(findMoments).not.toHaveBeenCalled();
     expect(indexMoment).toHaveBeenCalledWith({
       contractAddress: COLLECTION,
       tokenId: '3',
@@ -168,7 +168,7 @@ describe('updateMomentURI', () => {
         newCollectionAddress: NEW_COLLECTION,
       });
 
-      expect(selectMoments).toHaveBeenCalledTimes(1);
+      expect(findMoments).toHaveBeenCalledTimes(1);
       expect(indexMoment).toHaveBeenCalledWith({
         contractAddress: NEW_COLLECTION,
         tokenId: '1',

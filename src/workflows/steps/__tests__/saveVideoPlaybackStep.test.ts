@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('@/lib/supabase/in_process_moments/selectMoments', () => ({
+vi.mock('@/lib/moment/findMoments', () => ({
   default: vi.fn(),
 }));
 vi.mock('@/lib/supabase/in_process_video_playback/upsertVideoPlayback', () => ({
@@ -11,11 +11,11 @@ vi.mock('@/lib/mux/findMuxAssetIdFromPlaybackUrl', () => ({
 }));
 
 import saveVideoPlaybackStep from '../saveVideoPlaybackStep';
-import selectMoments from '@/lib/supabase/in_process_moments/selectMoments';
+import findMoments from '@/lib/moment/findMoments';
 import upsertVideoPlayback from '@/lib/supabase/in_process_video_playback/upsertVideoPlayback';
 import { findMuxAssetIdFromPlaybackUrl } from '@/lib/mux/findMuxAssetIdFromPlaybackUrl';
 
-const mockSelectMoments = vi.mocked(selectMoments);
+const mockSelectMoments = vi.mocked(findMoments);
 const mockUpsert = vi.mocked(upsertVideoPlayback);
 const mockFindAssetId = vi.mocked(findMuxAssetIdFromPlaybackUrl);
 

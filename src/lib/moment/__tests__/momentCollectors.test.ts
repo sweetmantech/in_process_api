@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { momentCollectors } from '../momentCollectors';
 import type { Address } from 'viem';
 
-vi.mock('../../supabase/in_process_moments/selectMoments', () => ({
+vi.mock('@/lib/moment/findMoments', () => ({
   default: vi.fn(),
 }));
 
@@ -10,10 +10,10 @@ vi.mock('../../supabase/in_process_transfers/selectCollectors', () => ({
   default: vi.fn(),
 }));
 
-import selectMoments from '../../supabase/in_process_moments/selectMoments';
+import findMoments from '@/lib/moment/findMoments';
 import selectCollectors from '../../supabase/in_process_transfers/selectCollectors';
 
-const mockSelectMoments = vi.mocked(selectMoments);
+const mockSelectMoments = vi.mocked(findMoments);
 const mockSelectCollectors = vi.mocked(selectCollectors);
 
 const validInput = {
@@ -113,7 +113,7 @@ describe('momentCollectors', () => {
     expect(result.collectors[0].timestamp).toBe(0);
   });
 
-  it('should throw when selectMoments returns an error', async () => {
+  it('should throw when findMoments returns an error', async () => {
     mockSelectMoments.mockResolvedValue({
       data: null,
       error: { message: 'db error' },

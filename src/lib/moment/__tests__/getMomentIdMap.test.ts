@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('@/lib/supabase/in_process_moments/selectMoments', () => ({
+vi.mock('@/lib/moment/findMoments', () => ({
   default: vi.fn(),
 }));
 
 import { getMomentIdMap } from '../getMomentIdMap';
-import selectMoments from '@/lib/supabase/in_process_moments/selectMoments';
+import findMoments from '@/lib/moment/findMoments';
 import type {
   InProcess_Admins_t,
   InProcess_Airdrops_t,
@@ -14,7 +14,7 @@ import type {
   Transfers_t,
 } from '@/types/envio';
 
-const mockSelectMoments = vi.mocked(selectMoments);
+const mockSelectMoments = vi.mocked(findMoments);
 
 const adminEntity = (): InProcess_Admins_t => ({
   id: '1',
@@ -89,7 +89,7 @@ const momentRow = (
 describe('getMomentIdMap', () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it('returns empty map for empty input without calling selectMoments', async () => {
+  it('returns empty map for empty input without calling findMoments', async () => {
     const result = await getMomentIdMap([]);
     expect(result.size).toBe(0);
     expect(mockSelectMoments).not.toHaveBeenCalled();
@@ -105,7 +105,7 @@ describe('getMomentIdMap', () => {
     expect(result.get('0xcol:8453:3')).toBe('moment-uuid');
   });
 
-  it('requests moments from selectMoments with collectionAddress, tokenId, chainId', async () => {
+  it('requests moments from findMoments with collectionAddress, tokenId, chainId', async () => {
     mockSelectMoments.mockResolvedValue({
       data: [momentRow('m1', '0xCOL', 8453, '3')],
       error: null,
@@ -203,7 +203,7 @@ describe('getMomentIdMap', () => {
     expect(result.has('0xother:8453:99')).toBe(false);
   });
 
-  it('throws when selectMoments returns an error', async () => {
+  it('throws when findMoments returns an error', async () => {
     mockSelectMoments.mockResolvedValue({
       data: null,
       error: new Error('db error'),

@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { Transfers_t } from '@/types/envio';
 
-vi.mock('@/lib/supabase/in_process_moments/selectMoments', () => ({
+vi.mock('@/lib/moment/findMoments', () => ({
   default: vi.fn(),
 }));
 
-import selectMoments from '@/lib/supabase/in_process_moments/selectMoments';
+import findMoments from '@/lib/moment/findMoments';
 import getMomentTitleForTransfer from '../getMomentTitleForTransfer';
 
 const makeTransfer = (overrides: Partial<Transfers_t> = {}): Transfers_t =>
@@ -22,7 +22,7 @@ beforeEach(() => {
 
 describe('getMomentTitleForTransfer', () => {
   it('returns the moment metadata name when present', async () => {
-    vi.mocked(selectMoments).mockResolvedValue({
+    vi.mocked(findMoments).mockResolvedValue({
       data: [{ metadata: { name: 'Telegram Demo with CY' } }],
       error: null,
     } as never);
@@ -30,7 +30,7 @@ describe('getMomentTitleForTransfer', () => {
     expect(await getMomentTitleForTransfer(makeTransfer())).toBe(
       'Telegram Demo with CY'
     );
-    expect(selectMoments).toHaveBeenCalledWith({
+    expect(findMoments).toHaveBeenCalledWith({
       moments: [
         { collectionAddress: '0xcollection', tokenId: '29', chainId: 8453 },
       ],
@@ -40,7 +40,7 @@ describe('getMomentTitleForTransfer', () => {
   });
 
   it('falls back to "moment #<tokenId>" when there is no name', async () => {
-    vi.mocked(selectMoments).mockResolvedValue({
+    vi.mocked(findMoments).mockResolvedValue({
       data: [{ metadata: { name: null } }],
       error: null,
     } as never);
@@ -49,7 +49,7 @@ describe('getMomentTitleForTransfer', () => {
   });
 
   it('falls back to "moment #<tokenId>" when the moment is not found', async () => {
-    vi.mocked(selectMoments).mockResolvedValue({
+    vi.mocked(findMoments).mockResolvedValue({
       data: [],
       error: null,
     } as never);

@@ -1,6 +1,6 @@
 import type { Moment } from '@/types/moment';
 import type { SaleConfig } from '@/types/sale';
-import selectMoments from '@/lib/supabase/in_process_moments/selectMoments';
+import findMoments from '@/lib/moment/findMoments';
 import selectSale from '@/lib/supabase/in_process_sales/selectSale';
 import { upsertSales } from '@/lib/supabase/in_process_sales/upsertSales';
 import { getFeeRecipientsForSale } from '@/lib/sales/getFeeRecipientsForSale';
@@ -17,7 +17,7 @@ const indexSale = async ({
   sale: SaleConfig;
 }) => {
   const collectionAddress = moment.collectionAddress.toLowerCase();
-  const { data: moments } = await selectMoments({
+  const { data: moments } = await findMoments({
     moments: [moment],
     chainId: moment.chainId,
     limit: 1,

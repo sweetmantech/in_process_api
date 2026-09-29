@@ -5,7 +5,7 @@ import getUpdateTokenURICall from '@/lib/viem/getUpdateTokenURICall';
 import { UpdateMomentURIInput, UpdateMomentURIResult } from '@/types/moment';
 import getUpdateCollectionCall from './getUpdateCollectionCall';
 import indexMoment from './indexMoment';
-import selectMoments from '@/lib/supabase/in_process_moments/selectMoments';
+import findMoments from '@/lib/moment/findMoments';
 import { baseSepolia } from 'viem/chains';
 
 export async function updateMomentURI({
@@ -53,7 +53,7 @@ export async function updateMomentURI({
 
   let maxSupply: number | undefined;
   if (newCollectionAddress) {
-    const { data: sourceMoments } = await selectMoments({
+    const { data: sourceMoments } = await findMoments({
       moments: [moment],
       chainId: moment.chainId,
       limit: 1,

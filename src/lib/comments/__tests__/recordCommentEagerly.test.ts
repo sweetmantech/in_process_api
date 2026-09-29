@@ -4,7 +4,7 @@ vi.mock('viem', async (importOriginal) => {
   const actual = await importOriginal<typeof import('viem')>();
   return { ...actual, parseEventLogs: vi.fn() };
 });
-vi.mock('@/lib/supabase/in_process_moments/selectMoments', () => ({
+vi.mock('@/lib/moment/findMoments', () => ({
   default: vi.fn(),
 }));
 vi.mock('@/lib/supabase/in_process_moment_comments/upsertComments', () => ({
@@ -15,13 +15,13 @@ vi.mock('@/lib/wallets/ensureWallets', () => ({
 }));
 
 import { parseEventLogs } from 'viem';
-import selectMoments from '@/lib/supabase/in_process_moments/selectMoments';
+import findMoments from '@/lib/moment/findMoments';
 import { upsertComments } from '@/lib/supabase/in_process_moment_comments/upsertComments';
 import { ensureWallets } from '@/lib/wallets/ensureWallets';
 import { recordCommentEagerly } from '@/lib/comments/recordCommentEagerly';
 
 const mockParseEventLogs = vi.mocked(parseEventLogs);
-const mockSelectMoments = vi.mocked(selectMoments);
+const mockSelectMoments = vi.mocked(findMoments);
 const mockUpsertComments = vi.mocked(upsertComments);
 const mockEnsureWallets = vi.mocked(ensureWallets);
 

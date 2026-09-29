@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { authMiddleware } from '@/authMiddleware';
 import { validate } from '@/lib/schema/validate';
 import { updateSaleSchema } from '@/lib/schema/updateSaleSchema';
-import selectMoments from '@/lib/supabase/in_process_moments/selectMoments';
+import findMoments from '@/lib/moment/findMoments';
 import selectAdmins from '@/lib/supabase/in_process_admins/selectAdmins';
 import type { ArtistContext } from '@/types/artist';
 
@@ -18,7 +18,7 @@ const validateUpdateSaleBody = async (req: NextRequest) => {
   const result = validate(updateSaleSchema, body);
   if (!result.success) return result.response;
 
-  const { data, error } = await selectMoments({
+  const { data, error } = await findMoments({
     moments: [result.data.moment],
   });
 

@@ -17,7 +17,7 @@ vi.mock('@/lib/resend/validateResendEnv', () => ({
   validateResendEnv: vi.fn(),
 }));
 
-vi.mock('@/lib/supabase/in_process_moments/selectMoments', () => ({
+vi.mock('@/lib/moment/findMoments', () => ({
   default: vi.fn(),
 }));
 
@@ -30,7 +30,7 @@ import selectWallets from '@/lib/supabase/in_process_wallets/selectWallets';
 import lookupArtistEmail from '@/lib/emails/lookupArtistEmail';
 import { getResendClient } from '@/lib/resend/client';
 import { validateResendEnv } from '@/lib/resend/validateResendEnv';
-import selectMoments from '@/lib/supabase/in_process_moments/selectMoments';
+import findMoments from '@/lib/moment/findMoments';
 import notifyCollectByEmail from '../notifyCollectByEmail';
 
 const RESEND_FROM_EMAIL = 'from@example.com';
@@ -100,7 +100,7 @@ describe('notifyCollectByEmail', () => {
       metadata: { name: 'My Moment', image: 'ar://image-hash' },
     };
 
-    vi.mocked(selectMoments).mockResolvedValue({
+    vi.mocked(findMoments).mockResolvedValue({
       data: [momentRow],
       error: null,
     } as any);
@@ -147,7 +147,7 @@ describe('notifyCollectByEmail', () => {
       metadata: { name: 'My Moment 2', image: null },
     };
 
-    vi.mocked(selectMoments).mockResolvedValue({
+    vi.mocked(findMoments).mockResolvedValue({
       data: [momentRow1, momentRow2],
       error: null,
     } as any);

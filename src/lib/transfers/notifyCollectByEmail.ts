@@ -1,4 +1,4 @@
-import selectMoments from '@/lib/supabase/in_process_moments/selectMoments';
+import findMoments from '@/lib/moment/findMoments';
 import selectWallets from '@/lib/supabase/in_process_wallets/selectWallets';
 import sendCollectEmailForTransfer from '@/lib/transfers/sendCollectEmailForTransfer';
 import type { Transfers_t } from '@/types/envio';
@@ -46,7 +46,7 @@ export async function notifyCollectByEmail(
     ])
   );
 
-  const { data: selectedMoments, error } = await selectMoments({
+  const { data: selectedMoments, error } = await findMoments({
     moments,
     includeMetadata: true,
   });

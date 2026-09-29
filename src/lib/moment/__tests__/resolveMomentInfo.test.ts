@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { MomentType } from '@/types/moment';
 
-vi.mock('@/lib/supabase/in_process_moments/selectMoments', () => ({
+vi.mock('@/lib/moment/findMoments', () => ({
   default: vi.fn(),
 }));
 vi.mock('@/lib/moment/resolveMomentFromDb', () => ({
@@ -11,7 +11,7 @@ vi.mock('@/lib/moment/resolveMomentFromChain', () => ({
   default: vi.fn(),
 }));
 
-import selectMoments from '@/lib/supabase/in_process_moments/selectMoments';
+import findMoments from '@/lib/moment/findMoments';
 import resolveMomentFromDb from '@/lib/moment/resolveMomentFromDb';
 import resolveMomentFromChain from '@/lib/moment/resolveMomentFromChain';
 import { resolveMomentInfo } from '@/lib/moment/resolveMomentInfo';
@@ -47,7 +47,7 @@ describe('resolveMomentInfo', () => {
   });
 
   it('calls resolveMomentFromDb when moment exists in DB', async () => {
-    vi.mocked(selectMoments).mockResolvedValue({
+    vi.mocked(findMoments).mockResolvedValue({
       data: [mockDbMoment],
       error: null,
     } as any);
@@ -61,7 +61,7 @@ describe('resolveMomentInfo', () => {
   });
 
   it('calls resolveMomentFromChain when moment is not in DB', async () => {
-    vi.mocked(selectMoments).mockResolvedValue({
+    vi.mocked(findMoments).mockResolvedValue({
       data: [],
       error: null,
     } as any);
@@ -80,8 +80,8 @@ describe('resolveMomentInfo', () => {
     expect(result).toEqual(chainResult);
   });
 
-  it('calls resolveMomentFromChain when selectMoments returns null data', async () => {
-    vi.mocked(selectMoments).mockResolvedValue({
+  it('calls resolveMomentFromChain when findMoments returns null data', async () => {
+    vi.mocked(findMoments).mockResolvedValue({
       data: null,
       error: null,
     } as any);

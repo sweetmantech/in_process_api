@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('../../supabase/in_process_moments/selectMoments', () => ({
+vi.mock('@/lib/moment/findMoments', () => ({
   default: vi.fn(),
 }));
 vi.mock(
@@ -11,10 +11,10 @@ vi.mock(
 );
 
 import { momentComments } from '../momentComments';
-import selectMoments from '../../supabase/in_process_moments/selectMoments';
+import findMoments from '@/lib/moment/findMoments';
 import getMomentCommentsRpc from '../../supabase/in_process_moment_comments/getMomentCommentsRpc';
 
-const mockSelectMoments = vi.mocked(selectMoments);
+const mockSelectMoments = vi.mocked(findMoments);
 const mockRpc = vi.mocked(getMomentCommentsRpc);
 
 const validInput = {
@@ -77,7 +77,7 @@ describe('momentComments', () => {
     });
   });
 
-  it('throws when selectMoments returns error', async () => {
+  it('throws when findMoments returns error', async () => {
     mockSelectMoments.mockResolvedValue({
       data: null,
       error: { message: 'db error' },

@@ -5,7 +5,7 @@ import type {
   Transfers_t,
   InProcess_Airdrops_t,
 } from '@/types/envio';
-import selectMoments from '@/lib/supabase/in_process_moments/selectMoments';
+import findMoments from '@/lib/moment/findMoments';
 
 export async function getMomentIdMap(
   entities:
@@ -23,7 +23,7 @@ export async function getMomentIdMap(
     chainId: e.chain_id,
   }));
 
-  const { data, error } = await selectMoments({ moments });
+  const { data, error } = await findMoments({ moments });
   if (error) throw error;
 
   const requestedTriplets = new Set(

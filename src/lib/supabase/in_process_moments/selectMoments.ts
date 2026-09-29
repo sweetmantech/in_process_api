@@ -1,7 +1,5 @@
 import { supabase } from '../client';
-import { Moment } from '@/types/moment';
 import type { Database } from '@/lib/supabase/types';
-import selectCollectionIdsByAddresses from '@/lib/supabase/in_process_collections/selectCollectionIdsByAddresses';
 import {
   momentsWithCollectionAndMetadataQuery,
   momentsWithCollectionQuery,
@@ -33,7 +31,9 @@ export type SelectedMoment = MomentWithCollection & {
 };
 
 type SelectMomentsArgs = {
-  moments?: Moment[];
+  /** Filter by collection id + token id; served by the (collection, token_id) unique index. */
+  collectionIds?: string[];
+  tokenIds?: number[];
   artists?: string[];
   chainId?: number;
   limit?: number;
@@ -54,33 +54,8 @@ async function selectMoments(args: SelectMomentsArgs = {}): Promise<{
         : momentsWithCollectionQuery
     );
 
-  if (args.moments?.length) {
-    // Resolve collection ids first so moments are found through the
-    // (collection, token_id) unique index. Filtering on the embedded
-    // collection.address instead made Postgres walk moments by created_at,
-    // reading most of the table for older moments (statement timeouts).
-    const { data: collections, error: collectionsError } =
-      await selectCollectionIdsByAddresses(
-        [
-          ...new Set(
-            args.moments.map((m) => m.collectionAddress.toLowerCase())
-          ),
-        ],
-        args.chainId
-      );
-    if (collectionsError) return { data: null, error: collectionsError };
-    if (!collections?.length) return { data: [], error: null };
-
-    query = query
-      .in(
-        'collection',
-        collections.map((c) => c.id)
-      )
-      .in(
-        'token_id',
-        args.moments.map((m) => Number(m.tokenId))
-      );
-  }
+  if (args.collectionIds) query = query.in('collection', args.collectionIds);
+  if (args.tokenIds) query = query.in('token_id', args.tokenIds);
 
   if (args.artists) query = query.in('collection.creator', args.artists);
   if (args.chainId) query = query.eq('collection.chain_id', args.chainId);
