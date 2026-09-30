@@ -16,10 +16,6 @@
     {
       "path": "/api/media/cache/cleanup",
       "schedule": "0 5 * * *"
-    },
-    {
-      "path": "/api/mux/ingest",
-      "schedule": "* * * * *"
     }
   ]
 }
