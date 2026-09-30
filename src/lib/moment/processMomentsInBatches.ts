@@ -14,6 +14,7 @@ import { upsertMetadata } from '@/lib/supabase/in_process_metadata/upsertMetadat
 import { upsertArtistNames } from '@/lib/supabase/in_process_artists/upsertArtistNames';
 import { getCollectionInfoMap } from '@/lib/collection/getCollectionInfoMap';
 import triggerMomentMigrations from './triggerMomentMigrations';
+import ingestIndexedMomentVideos from '@/lib/mux/ingestIndexedMomentVideos';
 
 export async function processMomentsInBatches(
   moments:
@@ -46,6 +47,7 @@ export async function processMomentsInBatches(
         await mapMetadataToSupabase(momentsWithUris);
       await upsertMetadata(metadataRecords);
       await upsertArtistNames(artistNamesByAddresses);
+      await ingestIndexedMomentVideos(metadataRecords);
 
       triggerMomentMigrations(batch, collectionInfoMap);
 

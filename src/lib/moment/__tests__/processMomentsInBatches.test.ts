@@ -24,6 +24,9 @@ vi.mock('@/lib/collection/getCollectionInfoMap', () => ({
 vi.mock('../triggerMomentMigrations', () => ({
   default: vi.fn(),
 }));
+vi.mock('@/lib/mux/ingestIndexedMomentVideos', () => ({
+  default: vi.fn(),
+}));
 
 import { processMomentsInBatches } from '../processMomentsInBatches';
 import { mapMomentsToSupabase } from '../mapMomentsToSupabase';
@@ -34,6 +37,7 @@ import { upsertMetadata } from '@/lib/supabase/in_process_metadata/upsertMetadat
 import { upsertArtistNames } from '@/lib/supabase/in_process_artists/upsertArtistNames';
 import { getCollectionInfoMap } from '@/lib/collection/getCollectionInfoMap';
 import triggerMomentMigrations from '../triggerMomentMigrations';
+import ingestIndexedMomentVideos from '@/lib/mux/ingestIndexedMomentVideos';
 
 const mockMapMoments = vi.mocked(mapMomentsToSupabase);
 const mockGetUris = vi.mocked(getMomentUris);
@@ -91,6 +95,18 @@ describe('processMomentsInBatches', () => {
   it('does nothing for empty array', async () => {
     await processMomentsInBatches([]);
     expect(mockUpsert).not.toHaveBeenCalled();
+  });
+
+  it('passes the upserted metadata to ingestIndexedMomentVideos', async () => {
+    const records = [{ moment: 'm1', animation_url: 'ar://tx' }];
+    mockMapMetadata.mockResolvedValue({
+      records,
+      artistNamesByAddresses: new Map(),
+    } as never);
+
+    await processMomentsInBatches([inProcessMoment as any]);
+
+    expect(vi.mocked(ingestIndexedMomentVideos)).toHaveBeenCalledWith(records);
   });
 
   it('delegates migration to triggerMomentMigrations', async () => {
