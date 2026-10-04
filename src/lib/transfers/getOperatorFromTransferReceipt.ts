@@ -15,8 +15,10 @@ const getOperatorFromTransferReceipt = async (
   t: Transfers_t
 ): Promise<string | null> => {
   const client = getPublicClient(t.chain_id);
-  const receipt = await client.getTransactionReceipt({
+  const receipt = await client.waitForTransactionReceipt({
     hash: t.transaction_hash as Hex,
+    timeout: 8_000,
+    pollingInterval: 1_000,
   });
   const collectionLc = t.collection.toLowerCase();
   const recipientLc = t.recipient.toLowerCase();
