@@ -60,7 +60,7 @@ describe('getOperatorFromTransferReceipt', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockGetPublicClient.mockReturnValue({
-      getTransactionReceipt: vi.fn().mockResolvedValue(receiptWith(mintTopics)),
+      waitForTransactionReceipt: vi.fn().mockResolvedValue(receiptWith(mintTopics)),
     } as never);
   });
 
@@ -72,7 +72,7 @@ describe('getOperatorFromTransferReceipt', () => {
 
   it('returns null when logs array is empty', async () => {
     mockGetPublicClient.mockReturnValue({
-      getTransactionReceipt: vi.fn().mockResolvedValue({ logs: [] }),
+      waitForTransactionReceipt: vi.fn().mockResolvedValue({ logs: [] }),
     } as never);
     await expect(
       getOperatorFromTransferReceipt(transferFixture())
@@ -81,7 +81,7 @@ describe('getOperatorFromTransferReceipt', () => {
 
   it('returns null when topics[0] does not match TransferSingle', async () => {
     mockGetPublicClient.mockReturnValue({
-      getTransactionReceipt: vi
+      waitForTransactionReceipt: vi
         .fn()
         .mockResolvedValue(
           receiptWith(['0x' + '11'.repeat(32), operatorTopic])
@@ -94,7 +94,7 @@ describe('getOperatorFromTransferReceipt', () => {
 
   it('returns null when log is from a different contract', async () => {
     mockGetPublicClient.mockReturnValue({
-      getTransactionReceipt: vi
+      waitForTransactionReceipt: vi
         .fn()
         .mockResolvedValue(receiptWith(mintTopics, operatorAddress)),
     } as never);
@@ -105,7 +105,7 @@ describe('getOperatorFromTransferReceipt', () => {
 
   it('returns null when from topic is not zero address (not a mint)', async () => {
     mockGetPublicClient.mockReturnValue({
-      getTransactionReceipt: vi
+      waitForTransactionReceipt: vi
         .fn()
         .mockResolvedValue(
           receiptWith([
