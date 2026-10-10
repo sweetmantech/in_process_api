@@ -107,12 +107,17 @@ describe('getMomentHandler', () => {
     vi.mocked(getMomentVideo).mockResolvedValue({
       provider: 'mux',
       playback_id: 'playback123',
+      aspect_ratio: '9:16',
     });
 
     const json = await (await getMomentHandler(moment)).json();
 
     expect(getMomentVideo).toHaveBeenCalledWith('moment-id');
-    expect(json.video).toEqual({ provider: 'mux', playback_id: 'playback123' });
+    expect(json.video).toEqual({
+      provider: 'mux',
+      playback_id: 'playback123',
+      aspect_ratio: '9:16',
+    });
   });
 
   it('returns null video when the moment has no ready playback', async () => {

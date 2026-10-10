@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase/client';
 const selectReadyVideoPlayback = async (momentId: string) => {
   return supabase
     .from('in_process_video_playback')
-    .select('provider, playback_id')
+    .select('provider, playback_id, aspect_ratio')
     .eq('moment', momentId)
     .eq('status', 'ready')
     .maybeSingle();

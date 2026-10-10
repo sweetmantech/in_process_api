@@ -3,6 +3,7 @@ import getMomentsByAddressAndTokenId from '@/lib/moment/getMomentsByAddressAndTo
 import upsertVideoPlayback from '@/lib/supabase/in_process_video_playback/upsertVideoPlayback';
 import { findMuxAssetIdFromPlaybackUrl } from '@/lib/mux/findMuxAssetIdFromPlaybackUrl';
 import getMuxPlaybackIdFromUrl from '@/lib/mux/getMuxPlaybackIdFromUrl';
+import getMuxAssetAspectRatio from '@/lib/mux/getMuxAssetAspectRatio';
 
 /** Records the moment's Mux asset as its streaming playback. */
 export default async function saveVideoPlaybackStep(
@@ -30,11 +31,14 @@ export default async function saveVideoPlaybackStep(
   const assetId = await findMuxAssetIdFromPlaybackUrl(playbackUrl);
   if (!assetId) throw new Error(`Mux asset not found for ${playbackId}`);
 
+  const aspectRatio = await getMuxAssetAspectRatio(assetId);
+
   const { error: upsertError } = await upsertVideoPlayback({
     moment: momentId,
     provider: 'mux',
     asset_id: assetId,
     playback_id: playbackId,
+    aspect_ratio: aspectRatio,
     status: 'ready',
   });
   if (upsertError) throw new Error(upsertError.message);

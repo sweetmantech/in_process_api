@@ -13,15 +13,20 @@ const mockSelect = vi.mocked(selectReadyVideoPlayback);
 describe('getMomentVideo', () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it('returns provider and playback id when ready playback exists', async () => {
+  it('returns provider, playback id and aspect ratio when ready playback exists', async () => {
     mockSelect.mockResolvedValue({
-      data: { provider: 'mux', playback_id: 'playback123' },
+      data: {
+        provider: 'mux',
+        playback_id: 'playback123',
+        aspect_ratio: '9:16',
+      },
       error: null,
     } as never);
 
     await expect(getMomentVideo('moment-id')).resolves.toEqual({
       provider: 'mux',
       playback_id: 'playback123',
+      aspect_ratio: '9:16',
     });
     expect(mockSelect).toHaveBeenCalledWith('moment-id');
   });
