@@ -661,6 +661,7 @@ export type Database = {
       };
       in_process_video_playback: {
         Row: {
+          aspect_ratio: string | null;
           asset_id: string | null;
           created_at: string;
           id: string;
@@ -673,6 +674,7 @@ export type Database = {
           updated_at: string;
         };
         Insert: {
+          aspect_ratio?: string | null;
           asset_id?: string | null;
           created_at?: string;
           id?: string;
@@ -685,6 +687,7 @@ export type Database = {
           updated_at?: string;
         };
         Update: {
+          aspect_ratio?: string | null;
           asset_id?: string | null;
           created_at?: string;
           id?: string;

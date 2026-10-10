@@ -9,17 +9,22 @@ vi.mock('@/lib/supabase/in_process_video_playback/upsertVideoPlayback', () => ({
 vi.mock('@/lib/mux/findMuxAssetIdFromPlaybackUrl', () => ({
   findMuxAssetIdFromPlaybackUrl: vi.fn(),
 }));
+vi.mock('@/lib/mux/getMuxAssetAspectRatio', () => ({
+  default: vi.fn(),
+}));
 
 import saveVideoPlaybackStep from '../saveVideoPlaybackStep';
 import getMomentsByAddressAndTokenId from '@/lib/moment/getMomentsByAddressAndTokenId';
 import upsertVideoPlayback from '@/lib/supabase/in_process_video_playback/upsertVideoPlayback';
 import { findMuxAssetIdFromPlaybackUrl } from '@/lib/mux/findMuxAssetIdFromPlaybackUrl';
+import getMuxAssetAspectRatio from '@/lib/mux/getMuxAssetAspectRatio';
 
 const mockGetMomentsByAddressAndTokenId = vi.mocked(
   getMomentsByAddressAndTokenId
 );
 const mockUpsert = vi.mocked(upsertVideoPlayback);
 const mockFindAssetId = vi.mocked(findMuxAssetIdFromPlaybackUrl);
+const mockGetAspectRatio = vi.mocked(getMuxAssetAspectRatio);
 
 const moment = {
   collectionAddress: '0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' as const,
@@ -43,6 +48,7 @@ describe('saveVideoPlaybackStep', () => {
       error: null,
     } as never);
     mockFindAssetId.mockResolvedValue('asset123');
+    mockGetAspectRatio.mockResolvedValue('9:16');
     mockUpsert.mockResolvedValue({ error: null } as never);
   });
 
@@ -58,12 +64,24 @@ describe('saveVideoPlaybackStep', () => {
       provider: 'mux',
       asset_id: 'asset123',
       playback_id: 'playback123',
+      aspect_ratio: '9:16',
       status: 'ready',
     });
+    expect(mockGetAspectRatio).toHaveBeenCalledWith('asset123');
     expect(result).toEqual({
       momentId: 'moment-uuid',
       playbackId: 'playback123',
     });
+  });
+
+  it('still records playback when the aspect ratio is unavailable', async () => {
+    mockGetAspectRatio.mockResolvedValue(null);
+
+    await saveVideoPlaybackStep(moment, PLAYBACK_URL);
+
+    expect(mockUpsert).toHaveBeenCalledWith(
+      expect.objectContaining({ aspect_ratio: null, status: 'ready' })
+    );
   });
 
   it('ignores moments from other tokens', async () => {
