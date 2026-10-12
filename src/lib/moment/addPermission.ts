@@ -6,6 +6,7 @@ import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
 import { getOperationalSmartWallet } from '@/lib/smartwallets/getOperationalSmartWallet';
 import { permissionSchema } from '../schema/permissionSchema';
 import getAddPermissionCall from '../viem/getAddPermissionCall';
+import getPermissionTargets from '../wallets/getPermissionTargets';
 
 export type AddPermissionInput = z.infer<typeof permissionSchema> & {
   artist: ArtistContext;
@@ -21,12 +22,15 @@ export async function addPermission({
   adminAddress,
   artist,
 }: AddPermissionInput): Promise<AddPermissionResult> {
-  const smartAccount = await getOperationalSmartWallet({ artist, moment });
+  const [smartAccount, targets] = await Promise.all([
+    getOperationalSmartWallet({ artist, moment }),
+    getPermissionTargets(adminAddress),
+  ]);
 
   const transaction = await sendUserOperation({
     smartAccount,
     network: IS_TESTNET ? 'base-sepolia' : 'base',
-    calls: [getAddPermissionCall(moment, adminAddress)],
+    calls: targets.map((target) => getAddPermissionCall(moment, target)),
   });
 
   return {
