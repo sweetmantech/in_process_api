@@ -4,6 +4,7 @@ import { FACTORY_ADDRESSES } from '@/lib/protocolSdk/create/factory-addresses';
 import selectCollections from '../supabase/in_process_collections/selectCollections';
 import type { Transfers_t } from '@/types/envio';
 import getPrimaryWallet from '../wallets/getPrimaryWallet';
+import isSmartWalletType from '../wallets/isSmartWalletType';
 import { Tables } from '../supabase/types';
 import isCoinbaseSmartWallet from '../smartwallets/isCoinbaseSmartWallet';
 import getSmartWalletOwnerAddresses from '../smartwallets/getSmartWalletOwnerAddresses';
@@ -49,7 +50,9 @@ const getAirdropOperator = async (
     : [address];
 
   const { data: wallets } = await selectWallets({ addresses: lookupAddresses });
-  const nonSmartWallets = (wallets ?? []).filter((w) => w.type !== 'smart');
+  const nonSmartWallets = (wallets ?? []).filter(
+    (w) => !isSmartWalletType(w.type)
+  );
   // Prefer a non-smart wallet, but an artist's smart wallet can itself own the
   // operator (e.g. a collection created by that smart wallet).
   const candidates = nonSmartWallets.length ? nonSmartWallets : (wallets ?? []);

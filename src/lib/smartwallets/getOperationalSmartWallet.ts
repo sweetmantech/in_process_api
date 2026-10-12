@@ -4,10 +4,8 @@ import { getWalletSmartAccount } from '@/lib/coinbase/getWalletSmartAccount';
 import getPermission from '@/lib/zora/getPermission';
 import { PERMISSION_BIT_ADMIN } from '@/lib/consts';
 import type { ArtistContext } from '@/types/artist';
+import isSmartWalletType from '@/lib/wallets/isSmartWalletType';
 
-// Returns the smart account authorized to write to the given collection.
-// Iterates all linked wallets (primary first) and returns the smart account
-// whose on-chain admin permission matches the collection.
 export const getOperationalSmartWallet = async ({
   artist,
   moment,
@@ -25,7 +23,11 @@ export const getOperationalSmartWallet = async ({
   const orderedWallets = [
     primaryWallet,
     ...wallets
-      .filter((w) => w.address.toLowerCase() !== primaryWallet.toLowerCase())
+      .filter(
+        (w) =>
+          !isSmartWalletType(w.type) &&
+          w.address.toLowerCase() !== primaryWallet.toLowerCase()
+      )
       .map((w) => w.address),
   ];
 

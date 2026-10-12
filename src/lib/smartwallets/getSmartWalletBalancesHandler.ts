@@ -8,6 +8,7 @@ import { Tables } from '@/lib/supabase/types';
 import getPrimaryWallet from '@/lib/wallets/getPrimaryWallet';
 import getWalletBalance from '@/lib/viem/getWalletBalance';
 import getArtistSmartWallet from '@/lib/smartwallets/getArtistSmartWallet';
+import isSmartWalletType from '@/lib/wallets/isSmartWalletType';
 
 type GetSmartWalletBalancesInput = z.infer<typeof getSmartWalletBalancesSchema>;
 
@@ -22,7 +23,7 @@ const getSmartWalletBalancesHandler = async ({
 
   const primaryWallet = getPrimaryWallet(
     (wallets ?? []).filter(
-      (w) => w.type !== 'smart'
+      (w) => !isSmartWalletType(w.type)
     ) as Tables<'in_process_wallets'>[]
   ) as Address | undefined;
   if (primaryWallet) {

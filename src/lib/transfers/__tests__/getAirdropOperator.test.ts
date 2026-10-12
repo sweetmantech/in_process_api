@@ -170,6 +170,40 @@ describe('getAirdropOperator', () => {
 
       expect(result).toEqual({ address: eoaAddress, username: 'bob' });
     });
+
+    it('prefers a non-smart wallet over an operator wallet', async () => {
+      mockGetOwnerAddresses.mockResolvedValue([eoaAddress, creatorAddress]);
+      mockSelectWallets.mockResolvedValue({
+        data: [
+          {
+            address: creatorAddress,
+            type: 'operator',
+            artist: { username: 'bob' },
+          },
+          { address: eoaAddress, type: null, artist: { username: 'bob' } },
+        ],
+      } as never);
+
+      const result = await getAirdropOperator(transferFixture());
+
+      expect(result).toEqual({ address: eoaAddress, username: 'bob' });
+    });
+
+    it('falls back to an operator wallet when owners match only smart wallets', async () => {
+      mockSelectWallets.mockResolvedValue({
+        data: [
+          {
+            address: eoaAddress,
+            type: 'operator',
+            artist: { username: 'bob' },
+          },
+        ],
+      } as never);
+
+      const result = await getAirdropOperator(transferFixture());
+
+      expect(result).toEqual({ address: eoaAddress, username: 'bob' });
+    });
   });
 
   describe('plain EOA operator', () => {

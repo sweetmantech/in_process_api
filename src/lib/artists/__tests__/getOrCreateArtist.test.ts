@@ -175,6 +175,31 @@ describe('getOrCreateArtist', () => {
 
       expect(result.primaryWallet).toBe('0xfarcaster');
     });
+
+    it('skips smart and operator wallets when falling back', async () => {
+      const wallets = [
+        makeWalletRow(ARTIST_ID, '0xoperator', 'operator', 'Bob'),
+        makeWalletRow(ARTIST_ID, '0xsmart', 'smart', 'Bob'),
+        makeWalletRow(ARTIST_ID, '0xlegacy', null as never, 'Bob'),
+      ];
+      mockSelectWallets([wallets[2]], wallets);
+
+      const result = await getOrCreateArtist({ address: ADDRESS });
+
+      expect(result.primaryWallet).toBe('0xlegacy');
+    });
+
+    it('falls back to the first wallet when only smart wallets exist', async () => {
+      const wallets = [
+        makeWalletRow(ARTIST_ID, '0xoperator', 'operator', 'Bob'),
+        makeWalletRow(ARTIST_ID, '0xsmart', 'smart', 'Bob'),
+      ];
+      mockSelectWallets([wallets[0]], wallets);
+
+      const result = await getOrCreateArtist({ address: ADDRESS });
+
+      expect(result.primaryWallet).toBe('0xoperator');
+    });
   });
 
   describe('return shape', () => {
