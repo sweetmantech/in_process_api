@@ -5,7 +5,7 @@ import type { Tables } from '@/lib/supabase/types';
 const wallet = (
   address: string,
   type: Tables<'in_process_wallets'>['type']
-): Tables<'in_process_wallets'> => ({ address, artist: 'artist-1', type });
+) => ({ address, type });
 
 describe('getPrimaryWallet', () => {
   it('returns undefined for empty input', () => {

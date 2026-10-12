@@ -713,16 +713,19 @@ export type Database = {
         Row: {
           address: string;
           artist: string | null;
+          eoa: string | null;
           type: Database['public']['Enums']['wallet_type'] | null;
         };
         Insert: {
           address: string;
           artist?: string | null;
+          eoa?: string | null;
           type?: Database['public']['Enums']['wallet_type'] | null;
         };
         Update: {
           address?: string;
           artist?: string | null;
+          eoa?: string | null;
           type?: Database['public']['Enums']['wallet_type'] | null;
         };
         Relationships: [
@@ -732,6 +735,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: 'in_process_artists';
             referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'in_process_wallets_eoa_fkey';
+            columns: ['eoa'];
+            isOneToOne: false;
+            referencedRelation: 'in_process_wallets';
+            referencedColumns: ['address'];
           },
         ];
       };

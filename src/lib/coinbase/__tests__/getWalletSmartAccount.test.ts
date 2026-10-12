@@ -14,11 +14,16 @@ vi.mock('@/lib/coinbase/client', () => ({
 vi.mock('@/lib/smartwallets/ensureSmartWalletOwnerAddress', () => ({
   default: vi.fn(),
 }));
+vi.mock('@/lib/wallets/saveOperatorWallet', () => ({
+  default: vi.fn(),
+}));
 
 import cdp from '@/lib/coinbase/client';
+import saveOperatorWallet from '@/lib/wallets/saveOperatorWallet';
 
 const mockCdp = vi.mocked(cdp);
 const mockEnsure = vi.mocked(ensureSmartWalletOwnerAddress);
+const mockSave = vi.mocked(saveOperatorWallet);
 
 const eoa = getAddress('0x2222222222222222222222222222222222222222');
 const smartAccountAddress = getAddress(
@@ -51,5 +56,19 @@ describe('getWalletSmartAccount', () => {
   it('skips ensureSmartWalletOwnerAddress when address is zeroAddress', async () => {
     await getWalletSmartAccount({ address: zeroAddress });
     expect(mockEnsure).not.toHaveBeenCalled();
+  });
+
+  it('saves the operator wallet linked to the lowercased EOA', async () => {
+    await getWalletSmartAccount({ address: eoa });
+
+    expect(mockSave).toHaveBeenCalledWith({
+      eoa: eoa.toLowerCase(),
+      operator: smartAccountAddress,
+    });
+  });
+
+  it('does not save an operator wallet for zeroAddress', async () => {
+    await getWalletSmartAccount({ address: zeroAddress });
+    expect(mockSave).not.toHaveBeenCalled();
   });
 });
