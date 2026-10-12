@@ -1042,7 +1042,7 @@ export type Database = {
         | 'sound.xyz'
         | 'zora_media'
         | 'zora';
-      wallet_type: 'privy' | 'farcaster' | 'external' | 'smart';
+      wallet_type: 'privy' | 'farcaster' | 'external' | 'smart' | 'operator';
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -1183,7 +1183,7 @@ export const Constants = {
         'zora_media',
         'zora',
       ],
-      wallet_type: ['privy', 'farcaster', 'external', 'smart'],
+      wallet_type: ['privy', 'farcaster', 'external', 'smart', 'operator'],
     },
   },
 } as const;
