@@ -3,6 +3,7 @@ import { EvmSmartAccount } from '@coinbase/cdp-sdk';
 import cdp from '@/lib/coinbase/client';
 import { deterministicAccountName } from './deterministricAccountName';
 import ensureSmartWalletOwnerAddress from '@/lib/smartwallets/ensureSmartWalletOwnerAddress';
+import saveOperatorWallet from '@/lib/wallets/saveOperatorWallet';
 
 export async function getWalletSmartAccount({
   address,
@@ -20,6 +21,10 @@ export async function getWalletSmartAccount({
 
   if (lowercased !== zeroAddress) {
     await ensureSmartWalletOwnerAddress(smartAccount, lowercased);
+    await saveOperatorWallet({
+      eoa: lowercased,
+      operator: smartAccount.address as Address,
+    });
   }
 
   return smartAccount;

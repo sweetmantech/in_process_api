@@ -5,7 +5,6 @@ import selectCollections from '../supabase/in_process_collections/selectCollecti
 import type { Transfers_t } from '@/types/envio';
 import getPrimaryWallet from '../wallets/getPrimaryWallet';
 import isSmartWalletType from '../wallets/isSmartWalletType';
-import { Tables } from '../supabase/types';
 import isCoinbaseSmartWallet from '../smartwallets/isCoinbaseSmartWallet';
 import getSmartWalletOwnerAddresses from '../smartwallets/getSmartWalletOwnerAddresses';
 import getOperatorFromTransferReceipt from './getOperatorFromTransferReceipt';
@@ -56,9 +55,7 @@ const getAirdropOperator = async (
   // Prefer a non-smart wallet, but an artist's smart wallet can itself own the
   // operator (e.g. a collection created by that smart wallet).
   const candidates = nonSmartWallets.length ? nonSmartWallets : (wallets ?? []);
-  const artistAddress = getPrimaryWallet(
-    candidates as Tables<'in_process_wallets'>[]
-  );
+  const artistAddress = getPrimaryWallet(candidates);
   if (!artistAddress) throw new Error('Airdrop operator not found');
   const artistWallet = candidates.find((w) => w.address === artistAddress);
   return {
