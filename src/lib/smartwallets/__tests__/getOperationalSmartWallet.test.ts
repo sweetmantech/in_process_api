@@ -35,7 +35,7 @@ describe('getOperationalSmartWallet', () => {
     );
   });
 
-  it('derives smart accounts only from EOAs, primary first', async () => {
+  it('tries the primary wallet, then other EOAs, then smart wallets', async () => {
     mockGetPermission.mockResolvedValue(0 as never);
 
     await expect(
@@ -47,7 +47,40 @@ describe('getOperationalSmartWallet', () => {
 
     expect(
       mockGetWalletSmartAccount.mock.calls.map(([{ address }]) => address)
-    ).toEqual(['0xprimary', '0xprivy']);
+    ).toEqual(['0xprimary', '0xprivy', '0xoperator', '0xsmart']);
+  });
+
+  it('stops at an EOA operator before trying smart wallets', async () => {
+    mockGetPermission.mockImplementation(
+      async (_collection, account) =>
+        ((account as string) === 'sa-0xprimary'
+          ? PERMISSION_BIT_ADMIN
+          : 0) as never
+    );
+
+    const result = await getOperationalSmartWallet({
+      artist,
+      moment: { collectionAddress: COLLECTION, tokenId: '1', chainId: 8453 },
+    });
+
+    expect(result.address).toBe('sa-0xprimary');
+    expect(mockGetWalletSmartAccount).toHaveBeenCalledTimes(1);
+  });
+
+  it('falls back to a smart wallet when only it holds admin permission', async () => {
+    mockGetPermission.mockImplementation(
+      async (_collection, account) =>
+        ((account as string) === 'sa-0xsmart'
+          ? PERMISSION_BIT_ADMIN
+          : 0) as never
+    );
+
+    const result = await getOperationalSmartWallet({
+      artist,
+      moment: { collectionAddress: COLLECTION, tokenId: '1', chainId: 8453 },
+    });
+
+    expect(result.address).toBe('sa-0xsmart');
   });
 
   it('returns the first smart account holding admin permission', async () => {
