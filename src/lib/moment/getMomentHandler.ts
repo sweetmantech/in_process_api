@@ -3,6 +3,7 @@ import normalizeMetadata from '@/lib/metadata/normalizeMetadata';
 import getMimeType from '@/lib/arweave/getMimeType';
 import getMetadata from '@/lib/moment/getMetadata';
 import getMomentAdmins from '@/lib/moment/getMomentAdmins';
+import getAdminGroups from '@/lib/admins/getAdminGroups';
 import getMomentVideo from '@/lib/moment/getMomentVideo';
 import { resolveMomentInfo } from '@/lib/moment/resolveMomentInfo';
 import selectCollections from '@/lib/supabase/in_process_collections/selectCollections';
@@ -32,6 +33,7 @@ const getMomentHandler = async (moment: Moment) => {
     getMomentAdmins({ collection, owner, moment, protocol }),
     getMomentVideo(id),
   ]);
+  const adminGroups = await getAdminGroups(admins);
 
   let resolvedOwner = owner;
   if (protocol === 'zora_media') {
@@ -66,6 +68,7 @@ const getMomentHandler = async (moment: Moment) => {
     soldOut: soldOut || timeSoldOut,
     protocol,
     admins,
+    ...(adminGroups && { adminGroups }),
     metadata: normalizedMetadata,
     video,
   });

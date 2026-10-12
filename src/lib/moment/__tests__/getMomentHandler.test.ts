@@ -21,6 +21,9 @@ vi.mock('@/lib/moment/getMetadata', () => ({
 vi.mock('@/lib/moment/getMomentAdmins', () => ({
   default: vi.fn(),
 }));
+vi.mock('@/lib/admins/getAdminGroups', () => ({
+  default: vi.fn(),
+}));
 
 vi.mock('@/lib/metadata/normalizeMetadata', () => ({
   default: vi.fn(),
@@ -39,6 +42,7 @@ import { resolveMomentInfo } from '@/lib/moment/resolveMomentInfo';
 import getMetadata from '@/lib/moment/getMetadata';
 import getMomentVideo from '@/lib/moment/getMomentVideo';
 import getMomentAdmins from '@/lib/moment/getMomentAdmins';
+import getAdminGroups from '@/lib/admins/getAdminGroups';
 import normalizeMetadata from '@/lib/metadata/normalizeMetadata';
 import getMimeType from '@/lib/arweave/getMimeType';
 import getZoraMediaInfo from '@/lib/viem/getZoraMediaInfo';
@@ -98,9 +102,31 @@ describe('getMomentHandler', () => {
     vi.mocked(resolveMomentInfo).mockResolvedValue(mockResolved as any);
     vi.mocked(getMetadata).mockResolvedValue(rawMetadata as any);
     vi.mocked(getMomentAdmins).mockResolvedValue([ADMIN] as any);
+    vi.mocked(getAdminGroups).mockResolvedValue([
+      { artistId: 'artist-1', username: 'bob', addresses: [ADMIN] },
+    ] as any);
     vi.mocked(normalizeMetadata).mockResolvedValue(normalizedMetadata as any);
     vi.mocked(getMimeType).mockResolvedValue('audio/mpeg');
     vi.mocked(getMomentVideo).mockResolvedValue(null);
+  });
+
+  it('returns admin groups next to admins', async () => {
+    const json = await (await getMomentHandler(moment)).json();
+
+    expect(getAdminGroups).toHaveBeenCalledWith([ADMIN]);
+    expect(json.admins).toEqual([ADMIN]);
+    expect(json.adminGroups).toEqual([
+      { artistId: 'artist-1', username: 'bob', addresses: [ADMIN] },
+    ]);
+  });
+
+  it('omits adminGroups when grouping fails', async () => {
+    vi.mocked(getAdminGroups).mockResolvedValue(null);
+
+    const json = await (await getMomentHandler(moment)).json();
+
+    expect(json.admins).toEqual([ADMIN]);
+    expect(json).not.toHaveProperty('adminGroups');
   });
 
   it('includes ready video playback for the moment', async () => {

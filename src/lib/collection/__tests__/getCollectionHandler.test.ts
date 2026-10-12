@@ -9,10 +9,14 @@ vi.mock('@/lib/supabase/in_process_admins/selectAdmins', () => ({
 vi.mock('@/lib/protocolSdk/ipfs/token-metadata', () => ({
   fetchTokenMetadata: vi.fn(),
 }));
+vi.mock('@/lib/admins/getAdminGroups', () => ({
+  default: vi.fn(),
+}));
 
 import selectCollections from '@/lib/supabase/in_process_collections/selectCollections';
 import selectAdmins from '@/lib/supabase/in_process_admins/selectAdmins';
 import { fetchTokenMetadata } from '@/lib/protocolSdk/ipfs/token-metadata';
+import getAdminGroups from '@/lib/admins/getAdminGroups';
 import getCollectionHandler from '@/lib/collection/getCollectionHandler';
 
 const baseInput = { collectionAddress: '0xabc', chainId: 8453 };
@@ -37,6 +41,7 @@ beforeEach(() => {
   vi.mocked(selectCollections).mockResolvedValue([mockCollection] as any);
   vi.mocked(selectAdmins).mockResolvedValue(mockAdmins as any);
   vi.mocked(fetchTokenMetadata).mockResolvedValue(mockMetadata as any);
+  vi.mocked(getAdminGroups).mockResolvedValue(null);
 });
 
 describe('getCollectionHandler', () => {
@@ -48,6 +53,28 @@ describe('getCollectionHandler', () => {
     expect(body.id).toBe('coll-1');
     expect(body.metadata).toEqual(mockMetadata);
     expect(body.admins).toEqual(['0xadmin1', '0xadmin2']);
+  });
+
+  it('returns admin groups for the unique admins', async () => {
+    const groups = [
+      {
+        artistId: 'artist-1',
+        username: 'bob',
+        addresses: ['0xadmin1', '0xadmin2'],
+      },
+    ];
+    vi.mocked(getAdminGroups).mockResolvedValue(groups as any);
+
+    const body = await (await getCollectionHandler(baseInput)).json();
+
+    expect(getAdminGroups).toHaveBeenCalledWith(['0xadmin1', '0xadmin2']);
+    expect(body.adminGroups).toEqual(groups);
+  });
+
+  it('omits adminGroups when grouping fails', async () => {
+    const body = await (await getCollectionHandler(baseInput)).json();
+
+    expect(body).not.toHaveProperty('adminGroups');
   });
 
   it('deduplicates and sorts admins', async () => {

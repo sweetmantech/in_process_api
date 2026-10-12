@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+import { Address } from 'viem';
+import getAdminGroups from '@/lib/admins/getAdminGroups';
 import selectCollections from '@/lib/supabase/in_process_collections/selectCollections';
 import selectAdmins from '@/lib/supabase/in_process_admins/selectAdmins';
 import { fetchTokenMetadata } from '@/lib/protocolSdk/ipfs/token-metadata';
@@ -35,6 +37,7 @@ const getCollectionHandler = async ({
   const uniqueAdmins = Array.from(
     new Set(admins.map((admin) => admin.artist_address))
   ).sort((b, a) => b.localeCompare(a));
+  const adminGroups = await getAdminGroups(uniqueAdmins as Address[]);
 
   const { creator_wallet, ...collectionFields } = collection;
 
@@ -43,6 +46,7 @@ const getCollectionHandler = async ({
     creator_username: creator_wallet?.artist?.username ?? null,
     metadata,
     admins: uniqueAdmins,
+    ...(adminGroups && { adminGroups }),
   });
 };
 
