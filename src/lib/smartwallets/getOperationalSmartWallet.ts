@@ -20,14 +20,16 @@ export const getOperationalSmartWallet = async ({
   const { primaryWallet, wallets } = artist;
   const { chainId, collectionAddress } = moment;
 
+  const otherWallets = wallets.filter(
+    (w) => w.address.toLowerCase() !== primaryWallet.toLowerCase()
+  );
   const orderedWallets = [
     primaryWallet,
-    ...wallets
-      .filter(
-        (w) =>
-          !isSmartWalletType(w.type) &&
-          w.address.toLowerCase() !== primaryWallet.toLowerCase()
-      )
+    ...otherWallets
+      .filter((w) => !isSmartWalletType(w.type))
+      .map((w) => w.address),
+    ...otherWallets
+      .filter((w) => isSmartWalletType(w.type))
       .map((w) => w.address),
   ];
 
