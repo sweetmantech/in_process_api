@@ -1,6 +1,7 @@
 import { Address } from 'viem';
 import { EvmSmartAccount } from '@coinbase/cdp-sdk';
 import { getWalletSmartAccount } from '@/lib/coinbase/getWalletSmartAccount';
+import { findWalletSmartAccount } from '@/lib/coinbase/findWalletSmartAccount';
 import getPermission from '@/lib/zora/getPermission';
 import { PERMISSION_BIT_ADMIN } from '@/lib/consts';
 import type { ArtistContext } from '@/types/artist';
@@ -23,20 +24,21 @@ export const getOperationalSmartWallet = async ({
   const otherWallets = wallets.filter(
     (w) => w.address.toLowerCase() !== primaryWallet.toLowerCase()
   );
-  const orderedWallets = [
-    primaryWallet,
+  const candidates = [
+    { address: primaryWallet, existingOnly: false },
     ...otherWallets
       .filter((w) => !isSmartWalletType(w.type))
-      .map((w) => w.address),
+      .map((w) => ({ address: w.address, existingOnly: false })),
     ...otherWallets
       .filter((w) => isSmartWalletType(w.type))
-      .map((w) => w.address),
+      .map((w) => ({ address: w.address, existingOnly: true })),
   ];
 
-  for (const walletAddress of orderedWallets) {
-    const smartAccount = await getWalletSmartAccount({
-      address: walletAddress,
-    });
+  for (const { address, existingOnly } of candidates) {
+    const smartAccount = existingOnly
+      ? await findWalletSmartAccount({ address })
+      : await getWalletSmartAccount({ address });
+    if (!smartAccount) continue;
     if (!collectionAddress) return smartAccount;
 
     const permission = await getPermission(
