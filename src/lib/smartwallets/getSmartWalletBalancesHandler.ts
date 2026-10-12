@@ -2,9 +2,9 @@ import { Address, formatEther, formatUnits } from 'viem';
 import { z } from 'zod';
 import { NextResponse } from 'next/server';
 import migrateSmartWalletFunds from '@/lib/artists/migrateSmartWalletFunds';
+import migrateOperatorWalletsFunds from '@/lib/artists/migrateOperatorWalletsFunds';
 import { getSmartWalletBalancesSchema } from '@/lib/schema/getSmartWalletBalancesSchema';
 import selectWallets from '@/lib/supabase/in_process_wallets/selectWallets';
-import { Tables } from '@/lib/supabase/types';
 import getPrimaryWallet from '@/lib/wallets/getPrimaryWallet';
 import getWalletBalance from '@/lib/viem/getWalletBalance';
 import getArtistSmartWallet from '@/lib/smartwallets/getArtistSmartWallet';
@@ -22,9 +22,7 @@ const getSmartWalletBalancesHandler = async ({
   ]);
 
   const primaryWallet = getPrimaryWallet(
-    (wallets ?? []).filter(
-      (w) => !isSmartWalletType(w.type)
-    ) as Tables<'in_process_wallets'>[]
+    (wallets ?? []).filter((w) => !isSmartWalletType(w.type))
   ) as Address | undefined;
   if (primaryWallet) {
     await migrateSmartWalletFunds({
@@ -33,6 +31,11 @@ const getSmartWalletBalancesHandler = async ({
       chainId,
     });
   }
+  await migrateOperatorWalletsFunds({
+    artistId,
+    primarySmartAccountAddress: smartWalletAddress,
+    chainId,
+  });
 
   const { ethBalance, usdcBalance } = await getWalletBalance(
     smartWalletAddress,

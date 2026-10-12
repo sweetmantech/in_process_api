@@ -2,7 +2,10 @@ import { Tables } from '../supabase/types';
 import isSmartWalletType from './isSmartWalletType';
 
 const getPrimaryWallet = (
-  wallets: Tables<'in_process_wallets'>[] | null | undefined
+  wallets:
+    | Pick<Tables<'in_process_wallets'>, 'address' | 'type'>[]
+    | null
+    | undefined
 ): string | undefined => {
   if (!wallets?.length) return undefined;
   const externalWallet = wallets.find((w) => w.type === 'external');
