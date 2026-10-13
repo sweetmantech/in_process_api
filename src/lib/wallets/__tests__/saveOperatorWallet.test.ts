@@ -56,12 +56,19 @@ describe('saveOperatorWallet', () => {
     );
   });
 
-  it('skips addresses that are not a known wallet', async () => {
+  it('creates the EOA row first when the EOA is not a known wallet', async () => {
     mockSelectWallets.mockResolvedValue({ data: [] } as never);
 
     await saveOperatorWallet({ eoa: EOA, operator: OPERATOR });
 
-    expect(mockUpsertWallets).not.toHaveBeenCalled();
+    expect(mockUpsertWallets).toHaveBeenNthCalledWith(1, [{ address: EOA }], {
+      ignoreDuplicates: true,
+    });
+    expect(mockUpsertWallets).toHaveBeenNthCalledWith(
+      2,
+      [{ address: OPERATOR, artist: null, type: 'operator', eoa: EOA }],
+      { ignoreDuplicates: true }
+    );
   });
 
   it.each(['smart', 'operator'])(
