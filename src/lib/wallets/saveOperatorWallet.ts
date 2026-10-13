@@ -13,13 +13,17 @@ const saveOperatorWallet = async ({
   try {
     const { data } = await selectWallets({ addresses: [eoa] });
     const eoaWallet = data?.[0];
-    if (!eoaWallet || isSmartWalletType(eoaWallet.type)) return;
+    if (eoaWallet && isSmartWalletType(eoaWallet.type)) return;
+    if (!eoaWallet)
+      await upsertWallets([{ address: eoa.toLowerCase() }], {
+        ignoreDuplicates: true,
+      });
 
     await upsertWallets(
       [
         {
           address: operator.toLowerCase(),
-          artist: eoaWallet.artist_id,
+          artist: eoaWallet?.artist_id ?? null,
           type: 'operator',
           eoa: eoa.toLowerCase(),
         },

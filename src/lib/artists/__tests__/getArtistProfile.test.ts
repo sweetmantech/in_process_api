@@ -61,6 +61,7 @@ describe('getArtistProfile', () => {
       {
         address: NORMALIZED,
         artist_id: null,
+        eoa: null,
         artist: null,
       },
     ]);
@@ -94,6 +95,7 @@ describe('getArtistProfile', () => {
       {
         address: NORMALIZED,
         artist_id: null,
+        eoa: null,
         artist: null,
       },
     ]);
@@ -114,6 +116,7 @@ describe('getArtistProfile', () => {
       {
         address: NORMALIZED,
         artist_id: EXISTING_ARTIST.id,
+        eoa: null,
         artist: EXISTING_ARTIST,
       },
     ]);
@@ -122,6 +125,31 @@ describe('getArtistProfile', () => {
 
     expect(getFarcasterUsernameByAddress).not.toHaveBeenCalled();
     expect(upsertArtistNames).not.toHaveBeenCalled();
+    expect(profile).toMatchObject({
+      id: EXISTING_ARTIST.id,
+      username: 'dwn2erth',
+    });
+  });
+
+  it("returns the EOA's profile for an operator address without creating an artist", async () => {
+    const EOA = '0x00000000000000000000000000000000000000e0';
+    vi.mocked(upsertWallets)
+      .mockResolvedValueOnce([
+        { address: NORMALIZED, artist_id: null, eoa: EOA, artist: null },
+      ])
+      .mockResolvedValueOnce([
+        {
+          address: EOA,
+          artist_id: EXISTING_ARTIST.id,
+          eoa: null,
+          artist: EXISTING_ARTIST,
+        },
+      ]);
+
+    const profile = await getArtistProfile(ADDRESS);
+
+    expect(upsertWallets).toHaveBeenNthCalledWith(2, [{ address: EOA }]);
+    expect(upsertArtists).not.toHaveBeenCalled();
     expect(profile).toMatchObject({
       id: EXISTING_ARTIST.id,
       username: 'dwn2erth',

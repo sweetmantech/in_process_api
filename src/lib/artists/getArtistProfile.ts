@@ -16,11 +16,19 @@ const emptyProfile = {
   telegram: null as string | null,
 };
 
-const getArtistProfile = async (address: string) => {
+type ArtistProfile = typeof emptyProfile & {
+  phone?: Awaited<ReturnType<typeof selectPhone>>['data'];
+};
+
+const getArtistProfile = async (
+  address: string
+): Promise<ArtistProfile | null> => {
   try {
     const normalized = address.toLowerCase();
 
     const [upserted] = await upsertWallets([{ address: normalized }]);
+    if (upserted.eoa) return getArtistProfile(upserted.eoa);
+
     let profile = upserted.artist ?? emptyProfile;
 
     if (!profile.username) {
