@@ -32,7 +32,7 @@ describe('getPrimaryWallet', () => {
     expect(
       getPrimaryWallet([
         wallet('0xoperator', 'operator'),
-        wallet('0xsmart', 'smart'),
+        wallet('0xsmart', 'payment'),
         wallet('0xnull', null),
       ])
     ).toBe('0xnull');
@@ -42,7 +42,7 @@ describe('getPrimaryWallet', () => {
     expect(
       getPrimaryWallet([
         wallet('0xoperator', 'operator'),
-        wallet('0xsmart', 'smart'),
+        wallet('0xsmart', 'payment'),
       ])
     ).toBe('0xoperator');
   });

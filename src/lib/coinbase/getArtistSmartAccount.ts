@@ -21,14 +21,14 @@ export async function getArtistSmartAccount({
 
   const { data: existing } = await selectWallets({
     artistIds: [artistId],
-    type: 'smart',
+    type: 'payment',
   });
   if (existing?.[0]?.address !== smartAddress) {
     await upsertWallets([
       {
         address: smartAddress,
         artist: artistId,
-        type: 'smart',
+        type: 'payment',
       },
     ]);
   }

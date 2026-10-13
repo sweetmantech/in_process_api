@@ -71,7 +71,7 @@ describe('saveOperatorWallet', () => {
     );
   });
 
-  it.each(['smart', 'operator'])(
+  it.each(['payment', 'operator'])(
     'skips when the source address is a %s wallet',
     async (type) => {
       mockSelectWallets.mockResolvedValue(walletRow(type, 'artist-1'));

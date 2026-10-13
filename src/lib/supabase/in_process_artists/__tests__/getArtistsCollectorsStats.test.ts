@@ -10,7 +10,7 @@ import getArtistsCollectorsStats from '@/lib/supabase/in_process_artists/getArti
 const makeRow = (overrides = {}) => ({
   artist_id: 'uuid-artist',
   username: 'alice',
-  wallets: [{ address: '0xartist', type: 'smart' }],
+  wallets: [{ address: '0xartist', type: 'payment' }],
   total_created_count: 10,
   total_collected_count: 5,
   ...overrides,

@@ -186,6 +186,13 @@ Supabase tables prefixed with `in_process_`:
 - `payments`, `sales`, `notifications`
 - `comments`, `api_keys`, `phone_numbers`
 
+`in_process_wallets.type`:
+
+- `privy` / `farcaster` / `external` / `null` — a person's EOA
+- `payment` — the artist's payment smart account (`getArtistSmartAccount(artistId)`, one per artist). Holds funds: topup, collect, withdraw, Arweave
+- `operator` — the smart account derived from an EOA (`getWalletSmartAccount(eoa)`). Holds collection permissions. `eoa` links it to its source EOA, and a trigger keeps its `artist` in sync with that EOA
+- Use `isSmartWalletType` to exclude `payment` and `operator` when picking an EOA
+
 #### lib/supabase Functions
 
 Functions in `@/lib/supabase/` are **pure Supabase operations only** — no formatting, transformation, or business logic. They execute a query and return the raw Supabase result (`{ data, error }`). All data shaping belongs in the caller.

@@ -27,7 +27,7 @@ const artist: ArtistContext = {
   wallets: [
     { address: '0xprimary' as Address, type: 'external' },
     { address: '0xoperator' as Address, type: 'operator' },
-    { address: '0xsmart' as Address, type: 'smart' },
+    { address: '0xsmart' as Address, type: 'payment' },
     { address: '0xprivy' as Address, type: 'privy' },
   ],
 };

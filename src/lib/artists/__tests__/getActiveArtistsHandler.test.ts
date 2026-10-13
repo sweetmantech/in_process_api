@@ -27,7 +27,7 @@ describe('getActiveArtistsHandler', () => {
         {
           artist_id: 'uuid-artist',
           username: 'alice',
-          wallets: [{ address: '0xartist', type: 'smart' }],
+          wallets: [{ address: '0xartist', type: 'payment' }],
           created_count: 10,
           airdropped_count: 5,
           telegram_count: 2,
