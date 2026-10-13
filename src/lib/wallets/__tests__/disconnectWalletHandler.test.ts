@@ -33,7 +33,7 @@ describe('disconnectWalletHandler', () => {
     const res = await disconnectWalletHandler({
       artist: {
         ...baseArtist,
-        wallets: [{ address: '0xabc', type: 'smart' }],
+        wallets: [{ address: '0xabc', type: 'payment' }],
       },
       address: '0xABC',
     });

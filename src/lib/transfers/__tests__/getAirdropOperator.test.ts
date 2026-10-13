@@ -144,7 +144,7 @@ describe('getAirdropOperator', () => {
     it('falls back to a smart wallet when owners match only smart wallets', async () => {
       mockSelectWallets.mockResolvedValue({
         data: [
-          { address: eoaAddress, type: 'smart', artist: { username: 'bob' } },
+          { address: eoaAddress, type: 'payment', artist: { username: 'bob' } },
         ],
       } as never);
 
@@ -159,7 +159,7 @@ describe('getAirdropOperator', () => {
         data: [
           {
             address: creatorAddress,
-            type: 'smart',
+            type: 'payment',
             artist: { username: 'bob' },
           },
           { address: eoaAddress, type: 'privy', artist: { username: 'bob' } },

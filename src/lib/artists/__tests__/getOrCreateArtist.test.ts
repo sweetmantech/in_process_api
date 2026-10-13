@@ -167,7 +167,7 @@ describe('getOrCreateArtist', () => {
     it('falls back to first wallet if no external or privy', async () => {
       const wallets = [
         makeWalletRow(ARTIST_ID, '0xfarcaster', 'farcaster', 'Bob'),
-        makeWalletRow(ARTIST_ID, '0xsmart', 'smart', 'Bob'),
+        makeWalletRow(ARTIST_ID, '0xsmart', 'payment', 'Bob'),
       ];
       mockSelectWallets([wallets[0]], wallets);
 
@@ -179,7 +179,7 @@ describe('getOrCreateArtist', () => {
     it('skips smart and operator wallets when falling back', async () => {
       const wallets = [
         makeWalletRow(ARTIST_ID, '0xoperator', 'operator', 'Bob'),
-        makeWalletRow(ARTIST_ID, '0xsmart', 'smart', 'Bob'),
+        makeWalletRow(ARTIST_ID, '0xsmart', 'payment', 'Bob'),
         makeWalletRow(ARTIST_ID, '0xlegacy', null as never, 'Bob'),
       ];
       mockSelectWallets([wallets[2]], wallets);
@@ -192,7 +192,7 @@ describe('getOrCreateArtist', () => {
     it('falls back to the first wallet when only smart wallets exist', async () => {
       const wallets = [
         makeWalletRow(ARTIST_ID, '0xoperator', 'operator', 'Bob'),
-        makeWalletRow(ARTIST_ID, '0xsmart', 'smart', 'Bob'),
+        makeWalletRow(ARTIST_ID, '0xsmart', 'payment', 'Bob'),
       ];
       mockSelectWallets([wallets[0]], wallets);
 

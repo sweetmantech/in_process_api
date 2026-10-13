@@ -19,7 +19,7 @@ const BASE_PARAMS = {
 const makeRow = (overrides = {}) => ({
   artist_id: 'uuid-artist',
   username: 'alice',
-  wallets: [{ address: '0xartist', type: 'smart' }],
+  wallets: [{ address: '0xartist', type: 'payment' }],
   total_created_count: 10,
   total_collected_count: 5,
   ...overrides,
@@ -85,7 +85,7 @@ describe('getArtistsCollectorsStatsHandler', () => {
       data: [
         makeRow({
           artist_id: 'uuid-charlie',
-          wallets: [{ address: '0xabc', type: 'smart' }],
+          wallets: [{ address: '0xabc', type: 'payment' }],
           username: 'charlie',
         }),
       ],
@@ -96,7 +96,7 @@ describe('getArtistsCollectorsStatsHandler', () => {
 
     expect(json.artists[0].artist_id).toBe('uuid-charlie');
     expect(json.artists[0].wallets).toEqual([
-      { address: '0xabc', type: 'smart' },
+      { address: '0xabc', type: 'payment' },
     ]);
     expect(json.artists[0].username).toBe('charlie');
   });
