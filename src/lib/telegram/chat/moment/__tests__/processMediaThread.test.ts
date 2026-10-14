@@ -80,8 +80,7 @@ describe('processMediaThread', () => {
         'file-123',
         'My Title',
         ARTIST_ADDRESS,
-        'burst-1',
-        'thumb-456'
+        'burst-1'
       );
     });
 
@@ -122,8 +121,7 @@ describe('processMediaThread', () => {
         'file-123',
         'My Title',
         ARTIST_ADDRESS,
-        'grp-1',
-        'thumb-456'
+        'grp-1'
       );
     });
   });

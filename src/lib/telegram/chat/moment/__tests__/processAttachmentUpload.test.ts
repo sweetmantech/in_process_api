@@ -58,37 +58,17 @@ describe('processAttachmentUpload', () => {
     const result = await processAttachmentUpload(
       attachment as never,
       'file-id',
-      'My Video',
-      'thumb-id'
+      'My Video'
     );
 
     expect(uploadVideoAttachment).toHaveBeenCalledWith(
       attachment,
       'file-id',
-      'My Video',
-      'thumb-id'
+      'My Video'
     );
     expect(uploadPhotoAttachment).not.toHaveBeenCalled();
     expect(uploadAudioAttachment).not.toHaveBeenCalled();
     expect(result).toEqual(VIDEO_RESULT);
-  });
-
-  it('passes thumbFileId through to uploadVideoAttachment', async () => {
-    const attachment = { type: 'video', size: 1000 };
-
-    await processAttachmentUpload(
-      attachment as never,
-      'file-id',
-      'My Video',
-      'thumb-123'
-    );
-
-    expect(uploadVideoAttachment).toHaveBeenCalledWith(
-      attachment,
-      'file-id',
-      'My Video',
-      'thumb-123'
-    );
   });
 
   it('calls uploadAudioAttachment for audio type', async () => {

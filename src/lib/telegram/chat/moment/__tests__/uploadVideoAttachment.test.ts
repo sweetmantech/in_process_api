@@ -11,25 +11,16 @@ vi.mock('@/lib/mux/uploadVideoToMux', () => ({ default: vi.fn() }));
 vi.mock('@/lib/telegram/chat/attachment/getTelegramFilePath', () => ({
   default: vi.fn(),
 }));
-vi.mock('@/lib/telegram/chat/attachment/fetchTelegramFile', () => ({
-  default: vi.fn(),
-}));
-vi.mock('@/lib/media/readMp4VideoRotationDegrees', () => ({
-  default: vi.fn(),
-}));
-vi.mock('@/lib/media/rotateImageBuffer', () => ({ default: vi.fn() }));
+vi.mock('@/lib/mux/fetchMuxThumbnail', () => ({ default: vi.fn() }));
 
 import uploadFileToSupabase from '@/lib/supabase/storage/uploadFileToSupabase';
 import uploadJsonToSupabase from '@/lib/supabase/storage/uploadJsonToSupabase';
 import uploadVideoToMux from '@/lib/mux/uploadVideoToMux';
 import getTelegramFilePath from '@/lib/telegram/chat/attachment/getTelegramFilePath';
-import fetchTelegramFile from '@/lib/telegram/chat/attachment/fetchTelegramFile';
-import readMp4VideoRotationDegrees from '@/lib/media/readMp4VideoRotationDegrees';
-import rotateImageBuffer from '@/lib/media/rotateImageBuffer';
+import fetchMuxThumbnail from '@/lib/mux/fetchMuxThumbnail';
 
 const BUFFER = Buffer.from('video data');
 const THUMB_BUFFER = Buffer.from('thumb data');
-const ROTATED_THUMB_BUFFER = Buffer.from('rotated thumb data');
 const THUMB_URL =
   'https://supabase.co/storage/v1/object/public/bucket/thumb.jpg';
 const META_URL =
@@ -42,14 +33,9 @@ beforeEach(() => {
     playbackUrl: 'https://stream.mux.com/abc.m3u8',
     downloadUrl: 'https://stream.mux.com/abc/highest.mp4',
   } as never);
-  vi.mocked(fetchTelegramFile).mockResolvedValue({
-    buffer: THUMB_BUFFER,
-    mimeType: 'image/jpeg',
-  });
+  vi.mocked(fetchMuxThumbnail).mockResolvedValue(THUMB_BUFFER);
   vi.mocked(uploadFileToSupabase).mockResolvedValue(THUMB_URL);
   vi.mocked(uploadJsonToSupabase).mockResolvedValue(META_URL);
-  vi.mocked(readMp4VideoRotationDegrees).mockReturnValue(0);
-  vi.mocked(rotateImageBuffer).mockResolvedValue(ROTATED_THUMB_BUFFER);
 });
 
 const makeAttachment = (overrides: Record<string, unknown> = {}) => ({
@@ -69,8 +55,7 @@ describe('uploadVideoAttachment', () => {
     const result = await uploadVideoAttachment(
       makeAttachment() as never,
       'file-id',
-      'My Video',
-      'thumb-id'
+      'My Video'
     );
 
     expect(result).toEqual({
@@ -90,63 +75,34 @@ describe('uploadVideoAttachment', () => {
     expect(result.mimeType).toBe('video/quicktime');
   });
 
-  describe('with thumbFileId', () => {
-    it('fetches the thumbnail file', async () => {
+  describe('when the Mux thumbnail is available', () => {
+    it('fetches the thumbnail for the Mux playback url', async () => {
       await uploadVideoAttachment(
         makeAttachment() as never,
         'file-id',
-        'My Video',
-        'thumb-id'
+        'My Video'
       );
-      expect(fetchTelegramFile).toHaveBeenCalledWith('thumb-id');
+      expect(fetchMuxThumbnail).toHaveBeenCalledWith(
+        'https://stream.mux.com/abc.m3u8'
+      );
     });
 
-    it('uploads thumbnail to Supabase', async () => {
+    it('uploads the thumbnail to Supabase as a jpeg', async () => {
       await uploadVideoAttachment(
         makeAttachment() as never,
         'file-id',
-        'My Video',
-        'thumb-id'
+        'My Video'
       );
-      expect(uploadFileToSupabase).toHaveBeenCalledOnce();
-    });
-
-    it('uploads the thumbnail unmodified when no rotation is needed', async () => {
-      vi.mocked(readMp4VideoRotationDegrees).mockReturnValue(0);
-
-      await uploadVideoAttachment(
-        makeAttachment() as never,
-        'file-id',
-        'My Video',
-        'thumb-id'
-      );
-
-      expect(rotateImageBuffer).not.toHaveBeenCalled();
       const uploadedFile = vi.mocked(uploadFileToSupabase).mock.calls[0][0];
+      expect(uploadedFile.type).toBe('image/jpeg');
       expect(await uploadedFile.text()).toBe('thumb data');
-    });
-
-    it('rotates the thumbnail before uploading when the video track is rotated', async () => {
-      vi.mocked(readMp4VideoRotationDegrees).mockReturnValue(90);
-
-      await uploadVideoAttachment(
-        makeAttachment() as never,
-        'file-id',
-        'My Video',
-        'thumb-id'
-      );
-
-      expect(rotateImageBuffer).toHaveBeenCalledWith(THUMB_BUFFER, 90);
-      const uploadedFile = vi.mocked(uploadFileToSupabase).mock.calls[0][0];
-      expect(await uploadedFile.text()).toBe('rotated thumb data');
     });
 
     it('includes image in metadata', async () => {
       await uploadVideoAttachment(
         makeAttachment() as never,
         'file-id',
-        'My Video',
-        'thumb-id'
+        'My Video'
       );
       expect(uploadJsonToSupabase).toHaveBeenCalledWith(
         expect.objectContaining({ image: THUMB_URL })
@@ -154,14 +110,9 @@ describe('uploadVideoAttachment', () => {
     });
   });
 
-  describe('without thumbFileId', () => {
-    it('does not fetch any thumbnail', async () => {
-      await uploadVideoAttachment(
-        makeAttachment() as never,
-        'file-id',
-        'My Video'
-      );
-      expect(fetchTelegramFile).not.toHaveBeenCalled();
+  describe('when the Mux thumbnail is unavailable', () => {
+    beforeEach(() => {
+      vi.mocked(fetchMuxThumbnail).mockResolvedValue(null);
     });
 
     it('does not upload any file to Supabase', async () => {

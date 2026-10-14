@@ -17,8 +17,7 @@ const processGroupMedia = async (
   fileId: string,
   name: string,
   artist: ArtistContext,
-  mediaGroupId: string,
-  thumbFileId?: string
+  mediaGroupId: string
 ): Promise<void> => {
   const stateAdapter = getStateAdapter(thread);
   const activityKey = `media_group_activity:${mediaGroupId}`;
@@ -34,7 +33,6 @@ const processGroupMedia = async (
     `media_group_assets:${mediaGroupId}`,
     {
       fileId,
-      thumbFileId,
       name,
       mimeType: attachment.mimeType,
       attachmentType: attachment.type,
