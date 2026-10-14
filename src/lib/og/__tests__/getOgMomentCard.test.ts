@@ -24,12 +24,11 @@ beforeEach(() => {
 });
 
 describe('getOgMomentCard', () => {
-  it('builds a card with the image, name, price and video flag', async () => {
+  it('builds a card with the image, name and video flag', async () => {
     const card = await getOgMomentCard(moment('video/mp4'));
 
     expect(card).toEqual({
       name: 'Fragmentos',
-      price: '10 USDC',
       isVideo: true,
       image: 'data:image/jpeg;base64,x',
       text: null,

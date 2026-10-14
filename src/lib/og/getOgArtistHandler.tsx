@@ -48,7 +48,7 @@ const getOgArtistHandler = async ({
         },
         {
           value: `$${formatOgStatValue(stats.usdc_archived, 0)}`,
-          label: 'USDC',
+          label: 'Archived',
         },
       ]}
       cards={cards}

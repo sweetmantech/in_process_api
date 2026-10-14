@@ -68,7 +68,6 @@ beforeEach(() => {
   } as any);
   mockGetOgMomentCard.mockResolvedValue({
     name: 'm',
-    price: null,
     isVideo: false,
     image: null,
     text: null,

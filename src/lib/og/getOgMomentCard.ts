@@ -1,12 +1,10 @@
 import type { TimelineMoment } from '@/types/moment';
 import getBase64Image from './getBase64Image';
-import formatOgPrice from './formatOgPrice';
 import fetchUri from '@/lib/arweave/fetchUri';
 import { OG_CARD_IMAGE_HEIGHT, OG_CARD_IMAGE_WIDTH } from './consts';
 
 export interface OgMomentCard {
   name: string;
-  price: string | null;
   isVideo: boolean;
   image: string | null;
   text: string | null;
@@ -42,7 +40,6 @@ const getOgMomentCard = async (
 
   return {
     name: metadata?.name ?? '',
-    price: formatOgPrice(moment.sale),
     isVideo: mime.startsWith('video'),
     image,
     text,

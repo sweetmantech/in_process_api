@@ -14,7 +14,7 @@ const ArtistOgProfile = ({
   bio: string | null;
   stats: ArtistOgStat[];
 }) => {
-  const nameSize = name.length > 12 ? 34 : name.length > 7 ? 48 : 70;
+  const nameSize = name.length > 12 ? 30 : name.length > 7 ? 42 : 62;
   return (
     <div
       style={{
@@ -29,7 +29,7 @@ const ArtistOgProfile = ({
       }}
     >
       {/* eslint-disable-next-line */}
-      <img src={IN_PROCESS_LOGO_URL} width={75} height={17} />
+      <img src={IN_PROCESS_LOGO_URL} width={110} height={25} />
       <div
         style={{
           display: 'flex',
@@ -69,7 +69,7 @@ const ArtistOgProfile = ({
           const isLast = i === stats.length - 1;
           return (
             <div
-              key={stat.label}
+              key={i}
               style={{
                 display: 'flex',
                 flexDirection: 'column',

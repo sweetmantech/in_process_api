@@ -2,7 +2,6 @@ import type { OgMomentCard } from '@/lib/og/getOgMomentCard';
 import {
   OG_CARD_IMAGE_HEIGHT,
   OG_CARD_IMAGE_WIDTH,
-  OG_GOLD,
   OG_INK,
   OG_MUTE,
 } from '@/lib/og/consts';
@@ -146,18 +145,6 @@ const MomentCardStack = ({ cards }: { cards: OgMomentCard[] }) => {
               }}
             >
               {front.name}
-            </div>
-            <div
-              style={{
-                display: 'flex',
-                marginTop: 3,
-                fontFamily: 'Archivo',
-                fontWeight: 700,
-                fontSize: 7.5,
-                color: OG_GOLD,
-              }}
-            >
-              {front.price ? `LATEST · ${front.price}` : 'LATEST'}
             </div>
           </div>
         )}
