@@ -25,3 +25,10 @@ export const DATE_AREA_H = 24;
 export const FILM_COLOR = '#262626';
 /** neutral-600/40 — matches FilmPlaceholder sprocket hole colour */
 export const HOLE_COLOR = 'rgba(82, 82, 82, 0.4)';
+
+// Artist card stack
+export const OG_CARD_IMAGE_WIDTH = 122;
+export const OG_CARD_IMAGE_HEIGHT = 188;
+export const OG_INK = '#1e1a12';
+export const OG_MUTE = '#5d574c';
+export const OG_LINE = '#c9c3b8';
