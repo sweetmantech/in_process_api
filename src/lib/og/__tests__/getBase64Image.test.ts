@@ -4,6 +4,7 @@ import getBase64Image from '@/lib/og/getBase64Image';
 vi.mock('@/lib/arweave/fetchUri');
 vi.mock('sharp', () => {
   const mockSharp = vi.fn(() => ({
+    rotate: vi.fn().mockReturnThis(),
     resize: vi.fn().mockReturnThis(),
     jpeg: vi.fn().mockReturnThis(),
     toBuffer: vi.fn().mockResolvedValue(Buffer.from('jpeg-data')),

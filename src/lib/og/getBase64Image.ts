@@ -5,7 +5,9 @@ import prepareImageBufferForSharp from '@/lib/media/prepareImageBufferForSharp';
 const MAX_SIZE = 200;
 
 const getBase64Image = async (
-  imageUrl: string | undefined
+  imageUrl: string | undefined,
+  width = MAX_SIZE,
+  height = MAX_SIZE
 ): Promise<string | null> => {
   try {
     if (!imageUrl) return null;
@@ -18,7 +20,8 @@ const getBase64Image = async (
     const sharpInput = await prepareImageBufferForSharp(buffer);
 
     const resized = await sharp(sharpInput)
-      .resize(MAX_SIZE, MAX_SIZE, { fit: 'cover' })
+      .rotate()
+      .resize(width, height, { fit: 'cover' })
       .jpeg({ quality: 70 })
       .toBuffer();
 

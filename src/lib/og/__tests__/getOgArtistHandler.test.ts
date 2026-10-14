@@ -13,58 +13,67 @@ vi.mock('next/og', () => ({
   },
 }));
 
-vi.mock('@/lib/supabase/in_process_moments/selectMoments', () => ({
+vi.mock('@/lib/supabase/in_process_moments/getArtistTimeline', () => ({
   default: vi.fn(),
 }));
-vi.mock('@/lib/protocolSdk/ipfs/token-metadata', () => ({
-  fetchTokenMetadata: vi.fn(),
-}));
 vi.mock('@/lib/artists/getArtistProfile', () => ({
+  default: vi.fn(),
+}));
+vi.mock('@/lib/stats/getTimelineStats', () => ({
   default: vi.fn(),
 }));
 vi.mock('@/lib/og/getOgFonts', () => ({
   default: vi.fn(),
 }));
-vi.mock('@/lib/arweave/fetchUri', () => ({
-  default: vi.fn(),
-}));
-vi.mock('@/lib/og/getImageMetadata', () => ({
+vi.mock('@/lib/og/getOgMomentCard', () => ({
   default: vi.fn(),
 }));
 
 import { ImageResponse } from 'next/og';
-import selectMoments from '@/lib/supabase/in_process_moments/selectMoments';
-import { fetchTokenMetadata } from '@/lib/protocolSdk/ipfs/token-metadata';
+import getArtistTimeline from '@/lib/supabase/in_process_moments/getArtistTimeline';
 import getArtistProfile from '@/lib/artists/getArtistProfile';
+import getTimelineStats from '@/lib/stats/getTimelineStats';
 import getOgFonts from '@/lib/og/getOgFonts';
-import fetchUri from '@/lib/arweave/fetchUri';
-import getImageMetadata from '@/lib/og/getImageMetadata';
+import getOgMomentCard from '@/lib/og/getOgMomentCard';
 import getOgArtistHandler from '@/lib/og/getOgArtistHandler';
 import { OG_HEIGHT, OG_WIDTH } from '@/lib/og/consts';
 
-const ARTIST = '0x0000000000000000000000000000000000000001' as const;
+const ARTIST = '0x00000000000000000000000000000000000000AB' as const;
 const CHAIN_ID = 8453;
 
-const mockSelectMoments = vi.mocked(selectMoments);
-const mockFetchTokenMetadata = vi.mocked(fetchTokenMetadata);
-const mockGetArtistProfile = vi.mocked(getArtistProfile);
-const mockGetOgFonts = vi.mocked(getOgFonts);
-const mockFetchUri = vi.mocked(fetchUri);
-const mockGetImageMetadata = vi.mocked(getImageMetadata);
+const mockTimeline = vi.mocked(getArtistTimeline);
+const mockGetOgMomentCard = vi.mocked(getOgMomentCard);
 
 beforeEach(() => {
   vi.clearAllMocks();
-  mockGetOgFonts.mockResolvedValue({
+  vi.mocked(getOgFonts).mockResolvedValue({
     archivo: new ArrayBuffer(1),
     spectral: new ArrayBuffer(2),
   });
-  mockGetArtistProfile.mockResolvedValue({ username: 'alice' } as any);
+  vi.mocked(getArtistProfile).mockResolvedValue({
+    username: 'alice',
+    bio: 'bio',
+  } as any);
+  vi.mocked(getTimelineStats).mockResolvedValue({
+    created_count: 3,
+    eth_archived: '0.04',
+    usdc_archived: '381',
+  });
+  mockTimeline.mockResolvedValue({
+    data: { moments: [], pagination: {} },
+    error: null,
+  } as any);
+  mockGetOgMomentCard.mockResolvedValue({
+    name: 'm',
+    price: null,
+    isVideo: false,
+    image: null,
+    text: null,
+  });
 });
 
 describe('getOgArtistHandler', () => {
   it('returns ImageResponse sized for OG artist card', async () => {
-    mockSelectMoments.mockResolvedValue({ data: [] } as any);
-
     const res = await getOgArtistHandler({
       artistAddress: ARTIST,
       chainId: CHAIN_ID,
@@ -77,104 +86,44 @@ describe('getOgArtistHandler', () => {
     });
   });
 
-  it('queries moments with lowercased artist address and chainId', async () => {
-    mockSelectMoments.mockResolvedValue({ data: [] } as any);
-
+  it('loads the latest three moments for the lowercased artist and chainId', async () => {
     await getOgArtistHandler({ artistAddress: ARTIST, chainId: CHAIN_ID });
 
-    expect(mockSelectMoments).toHaveBeenCalledWith({
-      artists: [ARTIST.toLowerCase()],
+    expect(mockTimeline).toHaveBeenCalledWith({
+      artist: ARTIST.toLowerCase(),
+      limit: 3,
       chainId: CHAIN_ID,
     });
   });
 
-  it('skips fetchTokenMetadata when artist has no moments', async () => {
-    mockSelectMoments.mockResolvedValue({ data: [] } as any);
-
-    await getOgArtistHandler({ artistAddress: ARTIST, chainId: CHAIN_ID });
-
-    expect(mockFetchTokenMetadata).not.toHaveBeenCalled();
-  });
-
-  it('fetches metadata for the first moment when moments exist', async () => {
-    mockSelectMoments.mockResolvedValue({
-      data: [{ uri: 'ar://some-token-uri' }, { uri: 'ar://other-uri' }],
-    } as any);
-    mockFetchTokenMetadata.mockResolvedValue({ name: 'Moment 1' } as any);
-    mockGetImageMetadata.mockResolvedValue(null);
-
-    await getOgArtistHandler({ artistAddress: ARTIST, chainId: CHAIN_ID });
-
-    expect(mockFetchTokenMetadata).toHaveBeenCalledTimes(1);
-    expect(mockFetchTokenMetadata).toHaveBeenCalledWith('ar://some-token-uri');
-  });
-
-  it('fetches text content for text/plain moments', async () => {
-    mockSelectMoments.mockResolvedValue({
-      data: [{ uri: 'ar://token-uri' }],
-    } as any);
-    mockFetchTokenMetadata.mockResolvedValue({
-      content: { mime: 'text/plain', uri: 'ar://body.txt' },
-    } as any);
-    mockFetchUri.mockResolvedValue({
-      ok: true,
-      text: async () => 'Hello world',
+  it('builds a card for each moment', async () => {
+    const moments = [{ id: '1' }, { id: '2' }];
+    mockTimeline.mockResolvedValue({
+      data: { moments, pagination: {} },
+      error: null,
     } as any);
 
     await getOgArtistHandler({ artistAddress: ARTIST, chainId: CHAIN_ID });
 
-    expect(mockFetchUri).toHaveBeenCalledWith('ar://body.txt');
-    expect(mockGetImageMetadata).not.toHaveBeenCalled();
+    expect(mockGetOgMomentCard).toHaveBeenCalledTimes(2);
+    expect(mockGetOgMomentCard.mock.calls[0][0]).toBe(moments[0]);
   });
 
-  it('does not fetch content when text/plain has no content uri', async () => {
-    mockSelectMoments.mockResolvedValue({
-      data: [{ uri: 'ar://token-uri' }],
-    } as any);
-    mockFetchTokenMetadata.mockResolvedValue({
-      content: { mime: 'text/plain', uri: undefined },
-    } as any);
-
-    await getOgArtistHandler({ artistAddress: ARTIST, chainId: CHAIN_ID });
-
-    expect(mockFetchUri).not.toHaveBeenCalled();
-  });
-
-  it('fetches image metadata for image moments', async () => {
-    mockSelectMoments.mockResolvedValue({
-      data: [{ uri: 'ar://token-uri' }],
-    } as any);
-    mockFetchTokenMetadata.mockResolvedValue({
-      image: 'ar://cover.png',
-      content: { mime: 'image/png' },
-    } as any);
-    mockGetImageMetadata.mockResolvedValue({
-      orientation: 1,
-      originalWidth: 200,
-      originalHeight: 200,
-      shouldRotate: false,
-      previewUrl: 'data:image/png;base64,abc',
+  it('throws when the timeline query fails instead of rendering an empty card', async () => {
+    mockTimeline.mockResolvedValue({
+      data: null,
+      error: new Error('statement timeout'),
     });
 
-    await getOgArtistHandler({ artistAddress: ARTIST, chainId: CHAIN_ID });
-
-    expect(mockGetImageMetadata).toHaveBeenCalledWith('ar://cover.png');
-    expect(mockFetchUri).not.toHaveBeenCalled();
+    await expect(
+      getOgArtistHandler({ artistAddress: ARTIST, chainId: CHAIN_ID })
+    ).rejects.toThrow('statement timeout');
   });
 
-  it('calls getArtistProfile with the lowercased artist address', async () => {
-    mockSelectMoments.mockResolvedValue({ data: [] } as any);
-
+  it('loads profile and stats with the lowercased artist address', async () => {
     await getOgArtistHandler({ artistAddress: ARTIST, chainId: CHAIN_ID });
 
-    expect(mockGetArtistProfile).toHaveBeenCalledWith(ARTIST.toLowerCase());
-  });
-
-  it('calls getOgFonts to load fonts', async () => {
-    mockSelectMoments.mockResolvedValue({ data: [] } as any);
-
-    await getOgArtistHandler({ artistAddress: ARTIST, chainId: CHAIN_ID });
-
-    expect(mockGetOgFonts).toHaveBeenCalledTimes(1);
+    expect(getArtistProfile).toHaveBeenCalledWith(ARTIST.toLowerCase());
+    expect(getTimelineStats).toHaveBeenCalledWith(ARTIST.toLowerCase());
   });
 });
