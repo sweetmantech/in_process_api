@@ -41,12 +41,7 @@ const createMomentsFromGroup = async (
           mimeType: asset.mimeType,
           fetchData: () => Promise.resolve(buffer),
         };
-        return processAttachmentUpload(
-          attachment,
-          asset.fileId,
-          asset.name,
-          asset.thumbFileId
-        );
+        return processAttachmentUpload(attachment, asset.fileId, asset.name);
       })
     );
 

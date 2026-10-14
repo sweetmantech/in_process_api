@@ -6,14 +6,13 @@ import uploadAudioAttachment from './uploadAudioAttachment';
 const processAttachmentUpload = async (
   attachment: Attachment,
   fileId: string,
-  name: string,
-  thumbFileId?: string
+  name: string
 ) => {
   if (attachment.type === 'image') {
     return uploadPhotoAttachment(attachment, fileId, name);
   }
   if (attachment.type === 'video') {
-    return uploadVideoAttachment(attachment, fileId, name, thumbFileId);
+    return uploadVideoAttachment(attachment, fileId, name);
   }
   if (attachment.type === 'audio') {
     return uploadAudioAttachment(attachment, fileId, name);

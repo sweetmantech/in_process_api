@@ -42,7 +42,6 @@ const PENDING_IMAGE = {
 
 const PENDING_VIDEO = {
   fileId: 'file-2',
-  thumbFileId: 'thumb-2',
   name: 'Video 1',
   mimeType: 'video/mp4',
   attachmentType: 'video' as const,
@@ -138,7 +137,7 @@ describe('createMomentsFromGroup', () => {
     expect(fetchTelegramFile).toHaveBeenCalledWith(PENDING_IMAGE.fileId);
   });
 
-  it('passes thumbFileId to processAttachmentUpload', async () => {
+  it('passes the video asset to processAttachmentUpload', async () => {
     const thread = makeThread(makeStateAdapter([PENDING_VIDEO]));
 
     await createMomentsFromGroup(thread as never, 'grp-1', ARTIST_CONTEXT);
@@ -146,8 +145,7 @@ describe('createMomentsFromGroup', () => {
     expect(processAttachmentUpload).toHaveBeenCalledWith(
       expect.objectContaining({ type: 'video', mimeType: 'video/mp4' }),
       PENDING_VIDEO.fileId,
-      PENDING_VIDEO.name,
-      PENDING_VIDEO.thumbFileId
+      PENDING_VIDEO.name
     );
   });
 

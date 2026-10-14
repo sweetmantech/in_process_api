@@ -6,7 +6,6 @@ export interface TelegramThreadState extends Record<string, unknown> {}
 
 export interface PendingMediaGroupAsset {
   fileId: string;
-  thumbFileId?: string;
   name: string;
   mimeType?: string;
   attachmentType: 'image' | 'video' | 'file' | 'audio';

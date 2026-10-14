@@ -21,21 +21,13 @@ const processMediaThread = async (
     return;
   }
 
-  const { fileId, thumbFileId } = extractTelegramFileIds(message, attachment);
+  const { fileId } = extractTelegramFileIds(message, attachment);
   const title = text || '';
   const raw = message.raw as { media_group_id?: string };
   const groupId =
     raw.media_group_id ?? (await getOrCreateUngroupedBurstId(thread));
 
-  await processGroupMedia(
-    thread,
-    attachment,
-    fileId,
-    title,
-    artist,
-    groupId,
-    thumbFileId
-  );
+  await processGroupMedia(thread, attachment, fileId, title, artist, groupId);
 };
 
 export default processMediaThread;
