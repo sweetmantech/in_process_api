@@ -1,156 +1,147 @@
 import type { OgMomentCard } from '@/lib/og/getOgMomentCard';
-import { OG_CARD_IMAGE_HEIGHT, OG_CARD_IMAGE_WIDTH } from '@/lib/og/consts';
+import {
+  OG_CARD_IMAGE_HEIGHT,
+  OG_CARD_IMAGE_WIDTH,
+  OG_GOLD,
+  OG_INK,
+  OG_MUTE,
+} from '@/lib/og/consts';
 
-const CAPTION_HEIGHT = 48;
-const BACK_CARD_OFFSETS = [
-  { left: 58, top: 12, rotate: 3 },
-  { left: 104, top: 24, rotate: 7 },
+const BACK_CARD_WIDTH = 112;
+const BACK_CARD_IMAGE_HEIGHT = 165;
+const BACK_CARDS = [
+  { left: 328, top: 42, rotate: -1 },
+  { left: 372, top: 62, rotate: 6 },
 ];
+const PLAY_ICON_SIZE = 22;
+const CARD_STYLE = {
+  display: 'flex',
+  flexDirection: 'column' as const,
+  position: 'absolute' as const,
+  backgroundColor: '#ffffff',
+  borderRadius: 6,
+  overflow: 'hidden',
+  boxShadow: '0 8px 18px rgba(30, 26, 18, 0.22)',
+};
 
 const PlayIcon = () => (
   <svg
-    width="22"
-    height="22"
+    width={PLAY_ICON_SIZE}
+    height={PLAY_ICON_SIZE}
     viewBox="0 0 24 24"
-    style={{ position: 'absolute', top: 77, left: 54 }}
+    style={{
+      position: 'absolute',
+      top: (OG_CARD_IMAGE_HEIGHT - PLAY_ICON_SIZE) / 2,
+      left: (OG_CARD_IMAGE_WIDTH - PLAY_ICON_SIZE) / 2,
+    }}
   >
     <path d="M7 4.5v15l12.5-7.5z" fill="#ffffff" fillOpacity="0.92" />
   </svg>
 );
 
-const CardMedia = ({ card }: { card: OgMomentCard }) => {
-  if (card.image)
+const CardMedia = ({
+  card,
+  width,
+  height,
+}: {
+  card: OgMomentCard | null;
+  width: number;
+  height: number;
+}) => {
+  if (card?.image)
     return (
       // eslint-disable-next-line
       <img
         src={card.image}
-        width={OG_CARD_IMAGE_WIDTH}
-        height={OG_CARD_IMAGE_HEIGHT}
+        width={width}
+        height={height}
         style={{ objectFit: 'cover' }}
       />
     );
   return (
     <div
       style={{
-        display: 'block',
-        width: OG_CARD_IMAGE_WIDTH,
-        height: OG_CARD_IMAGE_HEIGHT,
-        padding: 12,
-        backgroundColor: '#f4f1ec',
+        display: card ? 'block' : 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width,
+        height,
+        padding: card ? 10 : 0,
+        backgroundColor: card ? '#f4f1ec' : '#e0ddd8',
         fontFamily: 'Spectral',
-        fontSize: 9,
+        fontSize: card ? 9 : 12,
         lineHeight: 1.5,
-        color: '#4a4741',
+        color: OG_MUTE,
         overflow: 'hidden',
       }}
     >
-      {card.text ?? ''}
+      {card ? (card.text ?? '') : 'No moments yet'}
     </div>
   );
 };
 
-const BackCard = ({
-  card,
-  left,
-  top,
-  rotate,
-}: {
-  card: OgMomentCard;
-  left: number;
-  top: number;
-  rotate: number;
-}) => (
-  <div
-    style={{
-      display: 'flex',
-      position: 'absolute',
-      left,
-      top,
-      width: OG_CARD_IMAGE_WIDTH,
-      height: OG_CARD_IMAGE_HEIGHT + CAPTION_HEIGHT - 24,
-      borderRadius: 10,
-      overflow: 'hidden',
-      backgroundColor: '#2a2824',
-      transform: `rotate(${rotate}deg)`,
-      boxShadow: '0 6px 16px rgba(28, 26, 23, 0.18)',
-    }}
-  >
-    <CardMedia card={card} />
-  </div>
-);
-
 const MomentCardStack = ({ cards }: { cards: OgMomentCard[] }) => {
   const [front, ...back] = cards;
   return (
-    <div
-      style={{
-        display: 'flex',
-        position: 'relative',
-        width: 236,
-        height: '100%',
-      }}
-    >
+    <>
       {back
-        .slice(0, BACK_CARD_OFFSETS.length)
-        .map((card, i) => ({ card, offset: BACK_CARD_OFFSETS[i] }))
+        .slice(0, BACK_CARDS.length)
+        .map((card, i) => ({ card, ...BACK_CARDS[i] }))
         .reverse()
-        .map(({ card, offset }, i) => (
-          <BackCard key={i} card={card} {...offset} />
+        .map(({ card, left, top, rotate }) => (
+          <div
+            key={left}
+            style={{
+              ...CARD_STYLE,
+              left,
+              top,
+              width: BACK_CARD_WIDTH,
+              transform: `rotate(${rotate}deg)`,
+            }}
+          >
+            <CardMedia
+              card={card}
+              width={BACK_CARD_WIDTH}
+              height={BACK_CARD_IMAGE_HEIGHT}
+            />
+          </div>
         ))}
       <div
         style={{
-          display: 'flex',
-          flexDirection: 'column',
-          position: 'absolute',
-          left: 0,
-          top: 0,
+          ...CARD_STYLE,
+          left: 276,
+          top: 36,
           width: OG_CARD_IMAGE_WIDTH,
-          borderRadius: 10,
-          overflow: 'hidden',
-          backgroundColor: '#ffffff',
-          transform: 'rotate(-3deg)',
-          boxShadow: '0 10px 24px rgba(28, 26, 23, 0.28)',
+          transform: 'rotate(-6deg)',
         }}
       >
-        {front ? (
-          <div style={{ display: 'flex', position: 'relative' }}>
-            <CardMedia card={front} />
-            {front.isVideo && front.image && <PlayIcon />}
-          </div>
-        ) : (
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: OG_CARD_IMAGE_WIDTH,
-              height: OG_CARD_IMAGE_HEIGHT,
-              backgroundColor: '#e0ddd8',
-              fontFamily: 'Spectral',
-              fontSize: 13,
-              color: '#605f5c',
-            }}
-          >
-            No moments yet
-          </div>
-        )}
+        <div style={{ display: 'flex', position: 'relative' }}>
+          <CardMedia
+            card={front ?? null}
+            width={OG_CARD_IMAGE_WIDTH}
+            height={OG_CARD_IMAGE_HEIGHT}
+          />
+          {front?.isVideo && front.image && <PlayIcon />}
+        </div>
         {front && (
           <div
             style={{
               display: 'flex',
               flexDirection: 'column',
-              justifyContent: 'center',
-              height: CAPTION_HEIGHT,
-              paddingLeft: 10,
-              paddingRight: 10,
+              paddingTop: 6,
+              paddingRight: 8,
+              paddingBottom: 7,
+              paddingLeft: 8,
             }}
           >
             <div
               style={{
                 display: 'block',
                 fontFamily: 'Spectral',
+                fontStyle: 'italic',
                 fontSize: 12,
-                color: '#1c1a17',
+                lineHeight: 1.1,
+                color: OG_INK,
                 lineClamp: 1,
               }}
             >
@@ -161,9 +152,9 @@ const MomentCardStack = ({ cards }: { cards: OgMomentCard[] }) => {
                 display: 'flex',
                 marginTop: 3,
                 fontFamily: 'Archivo',
-                fontSize: 6.5,
-                letterSpacing: 1,
-                color: '#b5832a',
+                fontWeight: 700,
+                fontSize: 7.5,
+                color: OG_GOLD,
               }}
             >
               {front.price ? `LATEST · ${front.price}` : 'LATEST'}
@@ -171,7 +162,7 @@ const MomentCardStack = ({ cards }: { cards: OgMomentCard[] }) => {
           </div>
         )}
       </div>
-    </div>
+    </>
   );
 };
 

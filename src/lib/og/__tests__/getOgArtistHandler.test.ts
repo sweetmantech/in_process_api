@@ -28,6 +28,9 @@ vi.mock('@/lib/og/getOgFonts', () => ({
 vi.mock('@/lib/og/getOgMomentCard', () => ({
   default: vi.fn(),
 }));
+vi.mock('@/lib/og/getOgFont', () => ({
+  default: vi.fn().mockResolvedValue(new ArrayBuffer(3)),
+}));
 
 import { ImageResponse } from 'next/og';
 import getArtistTimeline from '@/lib/supabase/in_process_moments/getArtistTimeline';

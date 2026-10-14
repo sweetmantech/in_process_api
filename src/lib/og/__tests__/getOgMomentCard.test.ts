@@ -34,7 +34,7 @@ describe('getOgMomentCard', () => {
       image: 'data:image/jpeg;base64,x',
       text: null,
     });
-    expect(getBase64Image).toHaveBeenCalledWith('ar://img', 260, 352);
+    expect(getBase64Image).toHaveBeenCalledWith('ar://img', 244, 376);
   });
 
   it('falls back to a text excerpt for writing without a preview image', async () => {
