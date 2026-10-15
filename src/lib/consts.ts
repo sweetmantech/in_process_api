@@ -101,6 +101,9 @@ export const COMMENTS_ADDRESS: Record<number, Address> = {
 /** CDP account / smart-account name for the DELEGATE_COMMENTER operator. */
 export const IN_PROCESS_COMMENTER_ACCOUNT_NAME = 'in-process-commenter';
 
+export const IN_PROCESS_ARWEAVE_DEPOSIT_ACCOUNT_NAME =
+  'in-process-arweave-deposit';
+
 export const SUPABASE_STORAGE_BUCKET = 'in_process_files';
 
 export const APIFY_INSTAGRAM_ACTOR = 'apify~instagram-post-scraper';
