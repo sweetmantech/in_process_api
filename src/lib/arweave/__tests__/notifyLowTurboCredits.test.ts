@@ -23,6 +23,10 @@ const wincForCredits = (credits: number) =>
 
 beforeEach(() => {
   vi.clearAllMocks();
+  vi.stubEnv(
+    'LOW_TURBO_CREDIT_ALERT_EMAILS',
+    ' a@example.com, b@example.com ,'
+  );
 });
 
 describe('notifyLowTurboCredits', () => {
@@ -37,7 +41,7 @@ describe('notifyLowTurboCredits', () => {
     expect(result).toEqual({ credits: '11', alerted: false });
   });
 
-  it('emails sweetmantech when credits are exactly 10', async () => {
+  it('emails every configured recipient when credits are exactly 10', async () => {
     getBalance.mockResolvedValue({ winc: wincForCredits(10) });
     vi.mocked(redisClient.set).mockResolvedValue('OK');
 
@@ -49,7 +53,7 @@ describe('notifyLowTurboCredits', () => {
     });
     expect(sendResendEmail).toHaveBeenCalledWith(
       expect.objectContaining({
-        to: 'sweetmantech@gmail.com',
+        to: ['a@example.com', 'b@example.com'],
         subject: 'Arweave Turbo credits low: 10',
       })
     );
@@ -64,6 +68,17 @@ describe('notifyLowTurboCredits', () => {
 
     expect(sendResendEmail).not.toHaveBeenCalled();
     expect(result).toEqual({ credits: '3', alerted: false });
+  });
+
+  it('skips the email without claiming the key when no recipients are set', async () => {
+    vi.stubEnv('LOW_TURBO_CREDIT_ALERT_EMAILS', '');
+    getBalance.mockResolvedValue({ winc: wincForCredits(1) });
+
+    const result = await notifyLowTurboCredits();
+
+    expect(redisClient.set).not.toHaveBeenCalled();
+    expect(sendResendEmail).not.toHaveBeenCalled();
+    expect(result).toEqual({ credits: '1', alerted: false });
   });
 
   it('releases the alert key when the email fails so the next run retries', async () => {

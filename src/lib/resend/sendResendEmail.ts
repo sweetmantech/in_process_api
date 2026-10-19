@@ -6,7 +6,7 @@ export default async function sendResendEmail({
   subject,
   html,
 }: {
-  to: string;
+  to: string | string[];
   subject: string;
   html: string;
 }): Promise<void> {
