@@ -1,11 +1,13 @@
 import { formatUnits, parseUnits } from 'viem';
-import turboClient from './turboClient';
+import turboClient, { unauthTurboClient } from './turboClient';
 import redisClient from '@/lib/redis/redisClient';
 import sendResendEmail from '@/lib/resend/sendResendEmail';
 import getLowTurboCreditAlertEmails from './getLowTurboCreditAlertEmails';
+import buildLowTurboCreditHtml from '@/lib/emails/buildLowTurboCreditHtml';
 import {
   LOW_TURBO_CREDIT_ALERT_KEY,
   LOW_TURBO_CREDIT_THRESHOLD,
+  SITE_ORIGINAL_URL,
 } from '@/lib/consts';
 
 const WINC_DECIMALS = 12;
@@ -38,12 +40,23 @@ const notifyLowTurboCredits = async () => {
   });
   if (!claimed) return { credits, alerted: false };
 
-  const address = await turboClient.signer.getNativeAddress();
   try {
+    const rates = await unauthTurboClient.getFiatRates();
+    const usd = (Number(winc) / Number(rates.winc)) * rates.fiat.usd;
+    const displayCredits = Number(credits).toLocaleString('en-US', {
+      maximumFractionDigits: 4,
+    });
     await sendResendEmail({
       to: recipients,
-      subject: `Arweave Turbo credits low: ${credits}`,
-      html: `<p>Turbo credit balance is ${credits}, at or below the threshold of ${LOW_TURBO_CREDIT_THRESHOLD}.</p><p>Arweave address: ${address}</p>`,
+      subject: `Arweave Turbo credits low: ${displayCredits}`,
+      html: buildLowTurboCreditHtml({
+        credits: displayCredits,
+        usd: usd.toLocaleString('en-US', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }),
+        topupUrl: `${SITE_ORIGINAL_URL}/arweave`,
+      }),
     });
   } catch (e) {
     await redisClient.del(LOW_TURBO_CREDIT_ALERT_KEY);
