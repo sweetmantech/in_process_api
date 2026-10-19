@@ -104,6 +104,9 @@ export const IN_PROCESS_COMMENTER_ACCOUNT_NAME = 'in-process-commenter';
 export const IN_PROCESS_ARWEAVE_DEPOSIT_ACCOUNT_NAME =
   'in-process-arweave-deposit';
 
+export const LOW_TURBO_CREDIT_THRESHOLD = 10;
+export const LOW_TURBO_CREDIT_ALERT_KEY = 'arweave:low-credit-alerted';
+
 export const SUPABASE_STORAGE_BUCKET = 'in_process_files';
 
 export const APIFY_INSTAGRAM_ACTOR = 'apify~instagram-post-scraper';
