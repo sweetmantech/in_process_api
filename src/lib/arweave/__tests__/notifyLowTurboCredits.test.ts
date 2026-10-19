@@ -1,11 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const getBalance = vi.fn();
+const getFiatRates = vi.fn();
 
 vi.mock('@/lib/arweave/turboClient', () => ({
   default: {
     getBalance: (...args: unknown[]) => getBalance(...args),
-    signer: { getNativeAddress: async () => 'arweave-address' },
+  },
+  unauthTurboClient: {
+    getFiatRates: (...args: unknown[]) => getFiatRates(...args),
   },
 }));
 vi.mock('@/lib/redis/redisClient', () => ({
@@ -23,6 +26,10 @@ const wincForCredits = (credits: number) =>
 
 beforeEach(() => {
   vi.clearAllMocks();
+  getFiatRates.mockResolvedValue({
+    winc: wincForCredits(2),
+    fiat: { usd: 11.6 },
+  });
   vi.stubEnv(
     'LOW_TURBO_CREDIT_ALERT_EMAILS',
     ' a@example.com, b@example.com ,'
@@ -57,6 +64,10 @@ describe('notifyLowTurboCredits', () => {
         subject: 'Arweave Turbo credits low: 10',
       })
     );
+    const { html } = vi.mocked(sendResendEmail).mock.calls[0][0];
+    expect(html).toContain('>10</span>');
+    expect(html).toContain('&asymp; $58.00');
+    expect(html).toContain('href="https://inprocess.world/arweave"');
     expect(result).toEqual({ credits: '10', alerted: true });
   });
 
