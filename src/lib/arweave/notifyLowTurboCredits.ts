@@ -4,6 +4,8 @@ import redisClient from '@/lib/redis/redisClient';
 import sendResendEmail from '@/lib/resend/sendResendEmail';
 import getLowTurboCreditAlertEmails from './getLowTurboCreditAlertEmails';
 import buildLowTurboCreditHtml from '@/lib/emails/buildLowTurboCreditHtml';
+import { telegramChatBotClient } from '@/lib/telegram/client';
+import getLowTurboCreditAlertTelegramChatIds from './getLowTurboCreditAlertTelegramChatIds';
 import {
   LOW_TURBO_CREDIT_ALERT_KEY,
   LOW_TURBO_CREDIT_THRESHOLD,
@@ -26,14 +28,6 @@ const notifyLowTurboCredits = async () => {
     return { credits, alerted: false };
   }
 
-  const recipients = getLowTurboCreditAlertEmails();
-  if (recipients.length === 0) {
-    console.error(
-      '[notifyLowTurboCredits] LOW_TURBO_CREDIT_ALERT_EMAILS is not set'
-    );
-    return { credits, alerted: false };
-  }
-
   const claimed = await redisClient.set(LOW_TURBO_CREDIT_ALERT_KEY, credits, {
     condition: 'NX',
     expiration: { type: 'EX', value: ALERT_COOLDOWN_SECONDS },
@@ -46,18 +40,40 @@ const notifyLowTurboCredits = async () => {
     const displayCredits = Number(credits).toLocaleString('en-US', {
       maximumFractionDigits: 4,
     });
-    await sendResendEmail({
-      to: recipients,
-      subject: `Arweave Turbo credits low: ${displayCredits}`,
-      html: buildLowTurboCreditHtml({
-        credits: displayCredits,
-        usd: usd.toLocaleString('en-US', {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        }),
-        topupUrl: `${SITE_ORIGINAL_URL}/arweave`,
-      }),
+    const displayUsd = usd.toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
     });
+    const topupUrl = `${SITE_ORIGINAL_URL}/arweave`;
+
+    const telegramText = `Arweave Turbo credits low: ${displayCredits} credits (≈ $${displayUsd} USD)\nTop up: ${topupUrl}`;
+    const telegramResults = await Promise.allSettled(
+      getLowTurboCreditAlertTelegramChatIds().map((chatId) =>
+        telegramChatBotClient.sendMessage(chatId, telegramText)
+      )
+    );
+    telegramResults
+      .filter((r) => r.status === 'rejected')
+      .forEach((r) =>
+        console.error('[notifyLowTurboCredits] telegram send failed:', r.reason)
+      );
+
+    const recipients = getLowTurboCreditAlertEmails();
+    if (recipients.length === 0) {
+      console.error(
+        '[notifyLowTurboCredits] LOW_TURBO_CREDIT_ALERT_EMAILS is not set'
+      );
+    } else {
+      await sendResendEmail({
+        to: recipients,
+        subject: `Arweave Turbo credits low: ${displayCredits}`,
+        html: buildLowTurboCreditHtml({
+          credits: displayCredits,
+          usd: displayUsd,
+          topupUrl,
+        }),
+      });
+    }
   } catch (e) {
     await redisClient.del(LOW_TURBO_CREDIT_ALERT_KEY);
     throw e;
