@@ -15,10 +15,14 @@ vi.mock('@/lib/redis/redisClient', () => ({
   default: { set: vi.fn(), del: vi.fn() },
 }));
 vi.mock('@/lib/resend/sendResendEmail', () => ({ default: vi.fn() }));
+vi.mock('@/lib/telegram/client', () => ({
+  telegramChatBotClient: { sendMessage: vi.fn() },
+}));
 
 import notifyLowTurboCredits from '@/lib/arweave/notifyLowTurboCredits';
 import redisClient from '@/lib/redis/redisClient';
 import sendResendEmail from '@/lib/resend/sendResendEmail';
+import { telegramChatBotClient } from '@/lib/telegram/client';
 
 const ALERT_KEY = 'arweave:low-credit-alerted';
 const wincForCredits = (credits: number) =>
@@ -30,6 +34,7 @@ beforeEach(() => {
     winc: wincForCredits(2),
     fiat: { usd: 11.6 },
   });
+  vi.stubEnv('LOW_TURBO_CREDIT_ALERT_TELEGRAM_CHAT_IDS', '111, 222,');
   vi.stubEnv(
     'LOW_TURBO_CREDIT_ALERT_EMAILS',
     ' a@example.com, b@example.com ,'
@@ -45,6 +50,7 @@ describe('notifyLowTurboCredits', () => {
     expect(redisClient.del).toHaveBeenCalledWith(ALERT_KEY);
     expect(redisClient.set).not.toHaveBeenCalled();
     expect(sendResendEmail).not.toHaveBeenCalled();
+    expect(telegramChatBotClient.sendMessage).not.toHaveBeenCalled();
     expect(result).toEqual({ credits: '11', alerted: false });
   });
 
@@ -68,28 +74,54 @@ describe('notifyLowTurboCredits', () => {
     expect(html).toContain('>10</span>');
     expect(html).toContain('&asymp; $58.00');
     expect(html).toContain('href="https://inprocess.world/arweave"');
+    const telegramText =
+      'Arweave Turbo credits low: 10 credits (≈ $58.00 USD)\nTop up: https://inprocess.world/arweave';
+    expect(telegramChatBotClient.sendMessage).toHaveBeenCalledTimes(2);
+    expect(telegramChatBotClient.sendMessage).toHaveBeenCalledWith(
+      '111',
+      telegramText
+    );
+    expect(telegramChatBotClient.sendMessage).toHaveBeenCalledWith(
+      '222',
+      telegramText
+    );
     expect(result).toEqual({ credits: '10', alerted: true });
   });
 
-  it('skips the email when an alert was already sent within the cooldown', async () => {
+  it('skips the email and Telegram when an alert was already sent within the cooldown', async () => {
     getBalance.mockResolvedValue({ winc: wincForCredits(3) });
     vi.mocked(redisClient.set).mockResolvedValue(null);
 
     const result = await notifyLowTurboCredits();
 
     expect(sendResendEmail).not.toHaveBeenCalled();
+    expect(telegramChatBotClient.sendMessage).not.toHaveBeenCalled();
     expect(result).toEqual({ credits: '3', alerted: false });
   });
 
-  it('skips the email without claiming the key when no recipients are set', async () => {
+  it('still posts to Telegram when no email recipients are set', async () => {
     vi.stubEnv('LOW_TURBO_CREDIT_ALERT_EMAILS', '');
     getBalance.mockResolvedValue({ winc: wincForCredits(1) });
+    vi.mocked(redisClient.set).mockResolvedValue('OK');
 
     const result = await notifyLowTurboCredits();
 
-    expect(redisClient.set).not.toHaveBeenCalled();
+    expect(telegramChatBotClient.sendMessage).toHaveBeenCalledTimes(2);
     expect(sendResendEmail).not.toHaveBeenCalled();
-    expect(result).toEqual({ credits: '1', alerted: false });
+    expect(result).toEqual({ credits: '1', alerted: true });
+  });
+
+  it('still emails when one Telegram send fails', async () => {
+    getBalance.mockResolvedValue({ winc: wincForCredits(5) });
+    vi.mocked(redisClient.set).mockResolvedValue('OK');
+    vi.mocked(telegramChatBotClient.sendMessage)
+      .mockRejectedValueOnce(new Error('chat not found'))
+      .mockResolvedValueOnce({} as never);
+
+    const result = await notifyLowTurboCredits();
+
+    expect(sendResendEmail).toHaveBeenCalledTimes(1);
+    expect(result).toEqual({ credits: '5', alerted: true });
   });
 
   it('releases the alert key when the email fails so the next run retries', async () => {
