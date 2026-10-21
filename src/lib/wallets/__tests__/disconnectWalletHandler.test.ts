@@ -55,6 +55,7 @@ describe('disconnectWalletHandler', () => {
           x: 'x_handle',
           instagram: 'ig',
           telegram: 'tg',
+          default_collection: 'collection-1',
         },
       ] as any,
       error: null,
@@ -81,6 +82,7 @@ describe('disconnectWalletHandler', () => {
       x: null,
       instagram: null,
       telegram: null,
+      default_collection: null,
     });
     expect(upsertArtists).toHaveBeenNthCalledWith(2, {
       username: 'alice',
@@ -88,6 +90,7 @@ describe('disconnectWalletHandler', () => {
       x: 'x_handle',
       instagram: 'ig',
       telegram: 'tg',
+      default_collection: 'collection-1',
     });
     expect(upsertWallets).toHaveBeenCalledWith([
       { address: '0xabc', artist: 'new-artist-id' },

@@ -44,6 +44,7 @@ const connectWalletHandler = async ({
         x: null,
         instagram: null,
         telegram: null,
+        default_collection: null,
       });
       await upsertArtists({
         id: artistId,
@@ -52,6 +53,8 @@ const connectWalletHandler = async ({
         x: priorProfile.x ?? artistProfile.x,
         instagram: priorProfile.instagram ?? artistProfile.instagram,
         telegram: priorProfile.telegram ?? artistProfile.telegram,
+        default_collection:
+          priorProfile.default_collection ?? artistProfile.default_collection,
       });
     }
 
