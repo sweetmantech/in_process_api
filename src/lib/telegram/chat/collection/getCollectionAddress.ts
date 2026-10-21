@@ -1,8 +1,9 @@
 import { getAddress, isAddress, type Address } from 'viem';
 import type { Thread } from 'chat';
 import type { TelegramThreadState } from '@/lib/telegram/chat/telegramThreadState';
+import type { ArtistContext } from '@/types/artist';
 import getSelectedCollectionAddress from './getSelectedCollectionAddress';
-import ensureProcessCollection from '@/lib/collection/ensureProcessCollection';
+import resolveDefaultCollection from '@/lib/collection/resolveDefaultCollection';
 import { CHAIN_ID } from '@/lib/consts';
 
 type ResolvedMomentCollection = {
@@ -12,14 +13,14 @@ type ResolvedMomentCollection = {
 
 async function getCollectionAddress(
   thread: Thread<TelegramThreadState>,
-  artistAddress: Address
+  artist: ArtistContext
 ): Promise<ResolvedMomentCollection> {
   const selected = await getSelectedCollectionAddress(thread);
   if (selected) {
     return { collectionAddress: selected, explicitSelection: true };
   }
 
-  const collection = await ensureProcessCollection(artistAddress, CHAIN_ID);
+  const collection = await resolveDefaultCollection(artist, CHAIN_ID);
   if (!isAddress(collection.address)) {
     return { collectionAddress: null, explicitSelection: false };
   }

@@ -27,7 +27,7 @@ const createMomentsFromGroup = async (
 
   const { collectionAddress, explicitSelection } = await getCollectionAddress(
     thread,
-    artist.primaryWallet
+    artist
   );
 
   await thread.startTyping();

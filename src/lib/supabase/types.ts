@@ -175,6 +175,7 @@ export type Database = {
       in_process_artists: {
         Row: {
           bio: string | null;
+          default_collection: string | null;
           id: string;
           instagram: string | null;
           telegram: string | null;
@@ -183,6 +184,7 @@ export type Database = {
         };
         Insert: {
           bio?: string | null;
+          default_collection?: string | null;
           id?: string;
           instagram?: string | null;
           telegram?: string | null;
@@ -191,13 +193,22 @@ export type Database = {
         };
         Update: {
           bio?: string | null;
+          default_collection?: string | null;
           id?: string;
           instagram?: string | null;
           telegram?: string | null;
           username?: string | null;
           x?: string | null;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: 'in_process_artists_default_collection_fkey';
+            columns: ['default_collection'];
+            isOneToOne: false;
+            referencedRelation: 'in_process_collections';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       in_process_arweave_uploads: {
         Row: {

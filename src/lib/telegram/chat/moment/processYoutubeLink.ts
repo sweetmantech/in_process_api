@@ -16,7 +16,7 @@ const processYoutubeLink = async (
   if (!artist) return;
   const { collectionAddress, explicitSelection } = await getCollectionAddress(
     thread,
-    artist.primaryWallet
+    artist
   );
   await postMomentPending(thread);
   await thread.startTyping();
