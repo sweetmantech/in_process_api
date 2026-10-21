@@ -1,45 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { authMiddleware } from '@/authMiddleware';
-import {
-  CHAIN_ID,
-  PROCESS_COLLECTION_NAME,
-  PROCESS_COLLECTION_URI,
-} from '@/lib/consts';
-import selectCollections from '@/lib/supabase/in_process_collections/selectCollections';
-import getProcessCollectionItem from '@/lib/collection/getProcessCollectionItem';
-import { createCollectionSchema } from '@/lib/schema/createCollectionSchema';
-import { z } from 'zod';
-
-type CreateCollectionInput = z.infer<typeof createCollectionSchema>;
+import type { AuthResult } from '@/types/auth';
 
 const validateCreateDefaultCollection = async (
   req: NextRequest
-): Promise<CreateCollectionInput | NextResponse> => {
+): Promise<AuthResult | NextResponse> => {
   const authResult = await authMiddleware(req);
   if (authResult instanceof Response) return authResult as NextResponse;
-
-  const existingCollections = await selectCollections({
-    artist: authResult.primaryWallet,
-    uri: PROCESS_COLLECTION_URI,
-    chainId: CHAIN_ID,
-    limit: 1,
-  });
-  if (existingCollections.length > 0) {
-    const collection = await getProcessCollectionItem({
-      address: existingCollections[0].address,
-      chainId: CHAIN_ID,
-    });
-    return NextResponse.json(collection);
-  }
-
-  return {
-    account: authResult.primaryWallet,
-    collection: {
-      uri: PROCESS_COLLECTION_URI,
-      name: PROCESS_COLLECTION_NAME,
-    },
-    chainId: CHAIN_ID,
-  };
+  return authResult;
 };
 
 export default validateCreateDefaultCollection;

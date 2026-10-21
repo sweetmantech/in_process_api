@@ -66,7 +66,7 @@ describe('processTextMoment', () => {
 
     await processTextMoment(thread as never, CONTENT, ARTIST_CONTEXT);
 
-    expect(getCollectionAddress).toHaveBeenCalledWith(thread, ARTIST_ADDRESS);
+    expect(getCollectionAddress).toHaveBeenCalledWith(thread, ARTIST_CONTEXT);
     expect(thread.post).toHaveBeenCalledWith(
       'Posting your moment to In Process, this may take a minute...'
     );
