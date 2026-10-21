@@ -18,7 +18,7 @@ const selectArtists = async ({
   let query = supabase
     .from('in_process_artists')
     .select(
-      'id, username, bio, x, telegram, instagram, wallets:in_process_wallets!inner(*)',
+      'id, username, bio, x, telegram, instagram, default_collection, wallets:in_process_wallets!inner(*)',
       { count: 'exact' }
     );
 

@@ -29,6 +29,7 @@ const disconnectWalletHandler = async ({
       x: null,
       instagram: null,
       telegram: null,
+      default_collection: null,
     });
     const [upserted] = await upsertArtists({
       username: profile?.username ?? null,
@@ -36,6 +37,7 @@ const disconnectWalletHandler = async ({
       x: profile?.x ?? null,
       instagram: profile?.instagram ?? null,
       telegram: profile?.telegram ?? null,
+      default_collection: profile?.default_collection ?? null,
     });
     if (!upserted) throw new Error('Failed to update artist');
     await upsertWallets([
