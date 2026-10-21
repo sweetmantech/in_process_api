@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
   try {
     const validated = await validateCreateDefaultCollection(req);
     if (validated instanceof NextResponse) return validated;
-    return createDefaultCollectionHandler(validated);
+    return await createDefaultCollectionHandler(validated);
   } catch (e: any) {
     return NextResponse.json(
       { message: e?.message ?? 'Failed to create default collection' },
