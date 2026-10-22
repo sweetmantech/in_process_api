@@ -6,6 +6,7 @@ import { registerOnCollectionSelect } from '../onCollectionSelect';
 import {
   COLLECTION_SELECT_ACTION_ID,
   COLLECTION_SELECTION_CANCEL_ACTION_ID,
+  COLLECTION_SET_DEFAULT_ACTION_ID,
 } from '@/lib/telegram/chat/consts';
 
 const COL_ADDRESS = '0x0000000000000000000000000000000000000001';
@@ -73,12 +74,17 @@ describe('registerOnCollectionSelect', () => {
       normalized,
       undefined
     );
-    const text = `Next moment will be created in this collection:\n\`${normalized}\`\n\nSend a photo, video, YouTube link, or plain text to create.`;
+    const text = `Next moment will be created in this collection:\n\`${normalized}\`\n\nSend a photo, video, YouTube link, or plain text to create.\n\nTap "Set as default" to make this your default collection.`;
     expect(event.thread?.post).toHaveBeenCalledWith(
       Card({
         children: [
           CardText(text),
           Actions([
+            Button({
+              id: COLLECTION_SET_DEFAULT_ACTION_ID,
+              label: 'Set as default',
+              value: normalized,
+            }),
             Button({
               id: COLLECTION_SELECTION_CANCEL_ACTION_ID,
               label: 'Cancel',
