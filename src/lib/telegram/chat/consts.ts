@@ -4,6 +4,8 @@ export const COLLECTION_SELECT_ACTION_ID = 'sc';
 /** Clears thread collection selection state (compact id for Telegram callback limits). */
 export const COLLECTION_SELECTION_CANCEL_ACTION_ID = 'cx';
 
+export const COLLECTION_SET_DEFAULT_ACTION_ID = 'sd';
+
 /** Value is the next page number (integer string). */
 export const COLLECTIONS_LOAD_MORE_ACTION_ID = 'load_more_collections';
 
