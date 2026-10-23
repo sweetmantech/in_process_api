@@ -22,7 +22,7 @@ const sendWrapUp = async ({
     ``,
     `Great week, @${username}! You posted ${total} moment${total === 1 ? '' : 's'} this week.`,
     ``,
-    `Keep creating. See you next Friday! 🙌`,
+    `Keep creating. See you next Sunday! 🙌`,
   ].join('\n');
 
   await telegramChatBotClient.sendMessage(chatId, text);
