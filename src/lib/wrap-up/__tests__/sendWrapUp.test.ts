@@ -67,7 +67,7 @@ describe('sendWrapUp', () => {
 
 Great week, @cxy! You posted 4 moments this week.
 
-Keep creating. See you next Friday! 🙌`
+Keep creating. See you next Sunday! 🙌`
     );
   });
 
@@ -77,6 +77,6 @@ Keep creating. See you next Friday! 🙌`
     const text = vi.mocked(telegramChatBotClient.sendMessage).mock
       .calls[0][1] as string;
     expect(text).toContain('📊');
-    expect(text).toContain('See you next Friday');
+    expect(text).toContain('See you next Sunday');
   });
 });
