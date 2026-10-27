@@ -12,6 +12,11 @@ vi.mock('@/lib/supabase/in_process_hidden/deleteHidden', () => ({
   default: vi.fn(),
 }));
 
+vi.mock('@/lib/timeline/invalidateTimelineCache', () => ({
+  default: vi.fn(),
+}));
+
+import invalidateTimelineCache from '@/lib/timeline/invalidateTimelineCache';
 import selectHidden from '@/lib/supabase/in_process_hidden/selectHidden';
 import insertHidden from '@/lib/supabase/in_process_hidden/insertHidden';
 import deleteHidden from '@/lib/supabase/in_process_hidden/deleteHidden';
@@ -50,6 +55,11 @@ describe('hideMomentHandler', () => {
       expect(deleteHidden).not.toHaveBeenCalled();
     });
 
+    it('invalidates the timeline cache', async () => {
+      await hideMomentHandler(input);
+      expect(invalidateTimelineCache).toHaveBeenCalledOnce();
+    });
+
     it('returns success: true', async () => {
       const res = await hideMomentHandler(input);
       expect(res.status).toBe(200);
@@ -77,6 +87,11 @@ describe('hideMomentHandler', () => {
     it('does not call insertHidden', async () => {
       await hideMomentHandler(input);
       expect(insertHidden).not.toHaveBeenCalled();
+    });
+
+    it('invalidates the timeline cache', async () => {
+      await hideMomentHandler(input);
+      expect(invalidateTimelineCache).toHaveBeenCalledOnce();
     });
 
     it('returns success: true', async () => {

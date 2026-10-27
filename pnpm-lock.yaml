@@ -65,6 +65,9 @@ importers:
       '@types/node-telegram-bot-api':
         specifier: ^0.64.13
         version: 0.64.14
+      '@vercel/functions':
+        specifier: 3.5.0
+        version: 3.5.0(@aws-sdk/credential-provider-web-identity@3.972.13)
       '@vercel/og':
         specifier: ^0.8.6
         version: 0.8.6
