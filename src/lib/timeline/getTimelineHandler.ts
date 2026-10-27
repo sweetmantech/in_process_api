@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import getInProcessTimeline from '@/lib/supabase/in_process_moments/getInProcessTimeline';
 import getArtistTimeline from '@/lib/supabase/in_process_moments/getArtistTimeline';
 import getCollectionTimeline from '@/lib/supabase/in_process_moments/getCollectionTimeline';
+import { TIMELINE_CACHE_HEADERS } from '@/lib/timeline/timelineCache';
 
 interface TimelineParams {
   limit: number;
@@ -56,11 +57,14 @@ const getTimelineHandler = async ({
         { status: 'error', message: 'No data returned' },
         { status: 500 }
       );
-    return NextResponse.json({
-      status: 'success',
-      moments: data.moments,
-      pagination: data.pagination,
-    });
+    return NextResponse.json(
+      {
+        status: 'success',
+        moments: data.moments,
+        pagination: data.pagination,
+      },
+      { headers: TIMELINE_CACHE_HEADERS }
+    );
   }
 
   if (artist) {
@@ -87,11 +91,14 @@ const getTimelineHandler = async ({
         { status: 'error', message: 'No data returned' },
         { status: 500 }
       );
-    return NextResponse.json({
-      status: 'success',
-      moments: data.moments,
-      pagination: data.pagination,
-    });
+    return NextResponse.json(
+      {
+        status: 'success',
+        moments: data.moments,
+        pagination: data.pagination,
+      },
+      { headers: TIMELINE_CACHE_HEADERS }
+    );
   }
 
   const { data, error } = await getInProcessTimeline({
@@ -115,11 +122,14 @@ const getTimelineHandler = async ({
       { status: 'error', message: 'No data returned' },
       { status: 500 }
     );
-  return NextResponse.json({
-    status: 'success',
-    moments: data.moments,
-    pagination: data.pagination,
-  });
+  return NextResponse.json(
+    {
+      status: 'success',
+      moments: data.moments,
+      pagination: data.pagination,
+    },
+    { headers: TIMELINE_CACHE_HEADERS }
+  );
 };
 
 export default getTimelineHandler;

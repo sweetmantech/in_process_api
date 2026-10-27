@@ -1,10 +1,11 @@
+import { TIMELINE_CACHE_HEADERS } from '@/lib/timeline/timelineCache';
 import { getInProcessMomentsTotalCnt } from '@/lib/supabase/in_process_moments/getInProcessMomentsTotalCnt';
 
 export async function GET() {
   try {
     const { count, error } = await getInProcessMomentsTotalCnt();
     if (error) throw error;
-    return Response.json({ total: count });
+    return Response.json({ total: count }, { headers: TIMELINE_CACHE_HEADERS });
   } catch (e: any) {
     console.log(e);
     const message = e?.message ?? 'failed to get total counts.';
