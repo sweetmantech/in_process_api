@@ -308,6 +308,8 @@ describe('getTimelineHandler', () => {
       const res = await getTimelineHandler(BASE_PARAMS);
 
       expect(res.status).toBe(500);
+      expect(res.headers.get('Vercel-CDN-Cache-Control')).toBeNull();
+      expect(res.headers.get('Vercel-Cache-Tag')).toBeNull();
     });
 
     it('returns 500 when data is null', async () => {
@@ -319,6 +321,20 @@ describe('getTimelineHandler', () => {
       const res = await getTimelineHandler(BASE_PARAMS);
 
       expect(res.status).toBe(500);
+    });
+
+    it('sets CDN cache headers on success', async () => {
+      vi.mocked(getInProcessTimeline).mockResolvedValue({
+        data: MOCK_DATA as any,
+        error: null,
+      });
+
+      const res = await getTimelineHandler(BASE_PARAMS);
+
+      expect(res.headers.get('Vercel-CDN-Cache-Control')).toBe(
+        'max-age=60, stale-while-revalidate=300'
+      );
+      expect(res.headers.get('Vercel-Cache-Tag')).toBe('timeline');
     });
   });
 });
