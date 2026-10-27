@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextResponse } from 'next/server';
 import imageProxyHandler from '@/lib/media/imageProxyHandler';
-import { MEDIA_CACHE_TTL_DAYS } from '@/lib/media/mediaCacheConsts';
 
 vi.mock('sharp', () => {
   const mockSharp = vi.fn(() => ({
@@ -17,7 +16,7 @@ vi.mock('sharp', () => {
 });
 
 vi.mock('@/lib/arweave/fetchUri');
-vi.mock('@/lib/media/resolveMediaCacheUrl', () => ({
+vi.mock('@/lib/media/fetchMediaCache', () => ({
   default: vi.fn().mockResolvedValue(null),
 }));
 vi.mock('@/lib/media/writeMediaCache', () => ({
@@ -25,13 +24,13 @@ vi.mock('@/lib/media/writeMediaCache', () => ({
 }));
 
 import fetchUri from '@/lib/arweave/fetchUri';
-import resolveMediaCacheUrl from '@/lib/media/resolveMediaCacheUrl';
+import fetchMediaCache from '@/lib/media/fetchMediaCache';
 import writeMediaCache from '@/lib/media/writeMediaCache';
 
 describe('imageProxyHandler', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(resolveMediaCacheUrl).mockResolvedValue(null);
+    vi.mocked(fetchMediaCache).mockResolvedValue(null);
   });
 
   it('should return processed image with default format (webp)', async () => {
@@ -51,15 +50,15 @@ describe('imageProxyHandler', () => {
     expect(result.status).toBe(200);
     expect(result.headers.get('Content-Type')).toBe('image/webp');
     expect(result.headers.get('Cache-Control')).toBe(
-      `public, max-age=${MEDIA_CACHE_TTL_DAYS * 24 * 60 * 60}`
+      'public, max-age=31536000, s-maxage=31536000, immutable'
     );
     expect(writeMediaCache).toHaveBeenCalled();
     await Promise.resolve();
   });
 
-  it('should redirect when media cache hits', async () => {
-    vi.mocked(resolveMediaCacheUrl).mockResolvedValue(
-      'https://example.supabase.co/storage/v1/object/public/in_process_files/media-cache/abc.webp'
+  it('should serve cached bytes when media cache hits', async () => {
+    vi.mocked(fetchMediaCache).mockResolvedValue(
+      new Response('cached-image-data')
     );
 
     const result = await imageProxyHandler({
@@ -70,9 +69,14 @@ describe('imageProxyHandler', () => {
       format: 'webp',
     });
 
-    expect(result.status).toBe(302);
-    expect(result.headers.get('Location')).toContain('media-cache/abc.webp');
+    expect(result.status).toBe(200);
+    expect(result.headers.get('Content-Type')).toBe('image/webp');
+    expect(result.headers.get('Cache-Control')).toBe(
+      'public, max-age=31536000, s-maxage=31536000, immutable'
+    );
+    expect(await result.text()).toBe('cached-image-data');
     expect(fetchUri).not.toHaveBeenCalled();
+    expect(writeMediaCache).not.toHaveBeenCalled();
   });
 
   it('should return avif format when requested', async () => {

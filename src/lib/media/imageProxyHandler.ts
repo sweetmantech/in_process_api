@@ -4,9 +4,8 @@ import fetchUri from '@/lib/arweave/fetchUri';
 import prepareImageBufferForSharp from '@/lib/media/prepareImageBufferForSharp';
 import buildMediaCacheHash from '@/lib/media/buildMediaCacheHash';
 import buildMediaCachePath from '@/lib/media/buildMediaCachePath';
-import resolveMediaCacheUrl from '@/lib/media/resolveMediaCacheUrl';
+import fetchMediaCache from '@/lib/media/fetchMediaCache';
 import writeMediaCache from '@/lib/media/writeMediaCache';
-import { MEDIA_CACHE_TTL_DAYS } from '@/lib/media/mediaCacheConsts';
 
 const CONTENT_TYPES: Record<string, string> = {
   webp: 'image/webp',
@@ -15,7 +14,7 @@ const CONTENT_TYPES: Record<string, string> = {
   png: 'image/png',
 };
 
-const CACHE_CONTROL = `public, max-age=${MEDIA_CACHE_TTL_DAYS * 24 * 60 * 60}`;
+const CACHE_CONTROL = 'public, max-age=31536000, s-maxage=31536000, immutable';
 
 const imageProxyHandler = async ({
   url,
@@ -32,11 +31,14 @@ const imageProxyHandler = async ({
 }) => {
   const hash = buildMediaCacheHash([url, width, height, quality, format]);
   const path = buildMediaCachePath(hash, format);
-  const cachedUrl = await resolveMediaCacheUrl(path);
-  if (cachedUrl) {
-    return NextResponse.redirect(cachedUrl, {
-      status: 302,
-      headers: { 'Cache-Control': CACHE_CONTROL },
+  const cached = await fetchMediaCache(path);
+  if (cached) {
+    return new Response(cached.body, {
+      status: 200,
+      headers: {
+        'Content-Type': CONTENT_TYPES[format],
+        'Cache-Control': CACHE_CONTROL,
+      },
     });
   }
 
