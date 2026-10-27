@@ -4,6 +4,7 @@ import { indexers } from '@/lib/indexer/indexers';
 import loadCachedTimestamps from '@/lib/redis/loadCachedTimestamps';
 import saveCachedTimestamps from '@/lib/redis/saveCachedTimestamps';
 import sleep from '@/lib/sleep';
+import invalidateTimelineCache from '@/lib/timeline/invalidateTimelineCache';
 import { INDEX_INTERVAL_MS, INDEX_INTERVAL_EMPTY_MS } from '@/lib/consts';
 
 // Reserve a little headroom before Vercel's hard timeout so in-flight work can flush.
@@ -33,7 +34,10 @@ const runIndexerHandler = async (maxDurationSeconds: number) => {
   while (Date.now() < deadline) {
     try {
       const hasData = await executeIndexers(cachedTimestamps);
-      if (hasData) await saveCachedTimestamps(cachedTimestamps);
+      if (hasData) {
+        await saveCachedTimestamps(cachedTimestamps);
+        await invalidateTimelineCache();
+      }
       const sleepMs = hasData ? INDEX_INTERVAL_MS : INDEX_INTERVAL_EMPTY_MS;
       await sleep(Math.min(sleepMs, deadline - Date.now()));
     } catch (error) {

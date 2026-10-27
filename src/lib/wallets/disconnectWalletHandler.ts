@@ -4,6 +4,7 @@ import upsertWallets from '@/lib/supabase/in_process_wallets/upsertWallets';
 import { AuthResult } from '@/types/auth';
 import { upsertArtists } from '../supabase/in_process_artists/upsertArtists';
 import selectArtists from '../supabase/in_process_artists/selectArtists';
+import invalidateTimelineCache from '@/lib/timeline/invalidateTimelineCache';
 
 const disconnectWalletHandler = async ({
   artist,
@@ -43,10 +44,12 @@ const disconnectWalletHandler = async ({
     await upsertWallets([
       { address: address.toLowerCase(), artist: upserted.id },
     ]);
+    await invalidateTimelineCache();
     return NextResponse.json({ success: true });
   }
 
   await upsertWallets([{ address: address.toLowerCase(), artist: null }]);
+  await invalidateTimelineCache();
   return NextResponse.json({ success: true });
 };
 

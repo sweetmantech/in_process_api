@@ -37,6 +37,7 @@
     "@privy-io/node": "^0.8.0",
     "@supabase/supabase-js": "^2.93.1",
     "@types/node-telegram-bot-api": "^0.64.13",
+    "@vercel/functions": "3.5.0",
     "@vercel/og": "^0.8.6",
     "@zoralabs/protocol-deployments": "^0.6.5",
     "arweave": "^1.15.7",

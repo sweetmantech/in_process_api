@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { upsertArtists } from '@/lib/supabase/in_process_artists/upsertArtists';
+import invalidateTimelineCache from '@/lib/timeline/invalidateTimelineCache';
 import type { CreateProfileInput } from './validateCreateProfileBody';
 
 const createProfileHandler = async ({
@@ -18,6 +19,7 @@ const createProfileHandler = async ({
     x,
     telegram,
   });
+  await invalidateTimelineCache();
   return NextResponse.json({ success: true });
 };
 

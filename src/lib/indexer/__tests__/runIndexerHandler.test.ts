@@ -5,6 +5,9 @@ vi.mock('@/lib/indexer/indexers', () => ({ indexers: [] }));
 vi.mock('@/lib/redis/loadCachedTimestamps', () => ({ default: vi.fn() }));
 vi.mock('@/lib/redis/saveCachedTimestamps', () => ({ default: vi.fn() }));
 vi.mock('@/lib/sleep', () => ({ default: vi.fn() }));
+vi.mock('@/lib/timeline/invalidateTimelineCache', () => ({
+  default: vi.fn(),
+}));
 vi.mock('@/lib/consts', () => ({
   INDEX_INTERVAL_MS: 500,
   INDEX_INTERVAL_EMPTY_MS: 1000,
@@ -15,6 +18,7 @@ import { indexers } from '@/lib/indexer/indexers';
 import loadCachedTimestamps from '@/lib/redis/loadCachedTimestamps';
 import saveCachedTimestamps from '@/lib/redis/saveCachedTimestamps';
 import sleep from '@/lib/sleep';
+import invalidateTimelineCache from '@/lib/timeline/invalidateTimelineCache';
 import runIndexerHandler from '../runIndexerHandler';
 
 const mockIndexers = indexers as any[];
@@ -123,6 +127,24 @@ describe('runIndexerHandler', () => {
       await runIndexerHandler(DURATION);
 
       expect(saveCachedTimestamps).not.toHaveBeenCalled();
+    });
+
+    it('invalidates the timeline cache after a cycle that returned data', async () => {
+      vi.mocked(executeIndexers).mockResolvedValue(true);
+      advancePastDeadline(DURATION);
+
+      await runIndexerHandler(DURATION);
+
+      expect(invalidateTimelineCache).toHaveBeenCalledOnce();
+    });
+
+    it('does not invalidate the timeline cache after an empty cycle', async () => {
+      vi.mocked(executeIndexers).mockResolvedValue(false);
+      advancePastDeadline(DURATION);
+
+      await runIndexerHandler(DURATION);
+
+      expect(invalidateTimelineCache).not.toHaveBeenCalled();
     });
 
     it('sleeps with INDEX_INTERVAL_MS (500) when data was found', async () => {

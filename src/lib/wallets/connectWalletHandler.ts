@@ -7,6 +7,7 @@ import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
 import { upsertArtists } from '@/lib/supabase/in_process_artists/upsertArtists';
 import { WalletType } from '@/types/wallets';
 import { AuthResult } from '@/types/auth';
+import invalidateTimelineCache from '@/lib/timeline/invalidateTimelineCache';
 
 const connectWalletHandler = async ({
   artist,
@@ -73,6 +74,8 @@ const connectWalletHandler = async ({
   ]);
 
   if (priorArtistIdToDelete) await deleteArtist(priorArtistIdToDelete);
+
+  await invalidateTimelineCache();
 
   return NextResponse.json({ success: true });
 };
