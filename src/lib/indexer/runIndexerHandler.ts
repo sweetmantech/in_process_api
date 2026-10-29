@@ -5,6 +5,8 @@ import loadCachedTimestamps from '@/lib/redis/loadCachedTimestamps';
 import saveCachedTimestamps from '@/lib/redis/saveCachedTimestamps';
 import sleep from '@/lib/sleep';
 import invalidateTimelineCache from '@/lib/timeline/invalidateTimelineCache';
+import getTimelineTotalCount from '@/lib/timeline/getTimelineTotalCount';
+import { HOME_TIMELINE_COUNT_PARAMS } from '@/lib/timeline/timelineCache';
 import { INDEX_INTERVAL_MS, INDEX_INTERVAL_EMPTY_MS } from '@/lib/consts';
 
 // Reserve a little headroom before Vercel's hard timeout so in-flight work can flush.
@@ -37,6 +39,7 @@ const runIndexerHandler = async (maxDurationSeconds: number) => {
       if (hasData) {
         await saveCachedTimestamps(cachedTimestamps);
         await invalidateTimelineCache();
+        await getTimelineTotalCount(HOME_TIMELINE_COUNT_PARAMS);
       }
       const sleepMs = hasData ? INDEX_INTERVAL_MS : INDEX_INTERVAL_EMPTY_MS;
       await sleep(Math.min(sleepMs, deadline - Date.now()));

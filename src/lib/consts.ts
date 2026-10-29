@@ -73,6 +73,10 @@ export const INDEX_INTERVAL_EMPTY_MS = 1500;
 
 export const REDIS_TIMESTAMP_KEY = 'indexer:cached_timestamps';
 
+export const REDIS_TIMELINE_COUNT_VERSION_KEY = 'timeline:count:version';
+
+export const TIMELINE_COUNT_TTL_SECONDS = 360;
+
 export const NUDGE_PERIOD_ACTION_ID = 'remind_period';
 
 export const NUDGE_PERIODS: Record<

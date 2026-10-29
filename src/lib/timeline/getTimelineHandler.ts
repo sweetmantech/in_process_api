@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import getInProcessTimeline from '@/lib/supabase/in_process_moments/getInProcessTimeline';
 import getArtistTimeline from '@/lib/supabase/in_process_moments/getArtistTimeline';
 import getCollectionTimeline from '@/lib/supabase/in_process_moments/getCollectionTimeline';
+import getTimelineTotalCount from '@/lib/timeline/getTimelineTotalCount';
 import { TIMELINE_CACHE_HEADERS } from '@/lib/timeline/timelineCache';
 
 interface TimelineParams {
@@ -101,6 +102,15 @@ const getTimelineHandler = async ({
     );
   }
 
+  const totalCount = await getTimelineTotalCount({
+    chainId,
+    hidden,
+    mime,
+    period,
+    channel,
+    curated,
+    protocol,
+  });
   const { data, error } = await getInProcessTimeline({
     limit,
     page,
@@ -111,6 +121,7 @@ const getTimelineHandler = async ({
     channel,
     curated,
     protocol,
+    totalCount,
   });
   if (error)
     return NextResponse.json(

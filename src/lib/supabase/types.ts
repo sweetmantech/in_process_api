@@ -992,8 +992,22 @@ export type Database = {
           p_mime?: string;
           p_page?: number;
           p_period?: string;
+          p_protocol?: string;
+          p_total_count?: number;
         };
         Returns: Json;
+      };
+      get_in_process_timeline_count: {
+        Args: {
+          p_chainid?: number;
+          p_channel?: string;
+          p_curated?: boolean;
+          p_hidden?: boolean;
+          p_mime?: string;
+          p_period?: string;
+          p_protocol?: string;
+        };
+        Returns: number;
       };
       get_in_process_tokens: {
         Args: {

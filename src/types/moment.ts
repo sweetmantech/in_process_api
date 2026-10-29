@@ -88,6 +88,17 @@ export interface GetInProcessTimelineParams {
   channel?: string;
   curated?: boolean;
   protocol?: string;
+  totalCount?: number;
+}
+
+export interface TimelineCountParams {
+  chainId: number | null;
+  hidden: boolean;
+  mime?: string;
+  period?: string;
+  channel?: string;
+  curated: boolean;
+  protocol?: string;
 }
 
 export interface GetInProcessTimelineResponse {

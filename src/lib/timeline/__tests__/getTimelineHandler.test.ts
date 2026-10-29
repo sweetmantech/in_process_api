@@ -10,7 +10,11 @@ vi.mock('@/lib/supabase/in_process_moments/getArtistTimeline', () => ({
 vi.mock('@/lib/supabase/in_process_moments/getCollectionTimeline', () => ({
   default: vi.fn(),
 }));
+vi.mock('@/lib/timeline/getTimelineTotalCount', () => ({
+  default: vi.fn(),
+}));
 
+import getTimelineTotalCount from '@/lib/timeline/getTimelineTotalCount';
 import getInProcessTimeline from '@/lib/supabase/in_process_moments/getInProcessTimeline';
 import getArtistTimeline from '@/lib/supabase/in_process_moments/getArtistTimeline';
 import getCollectionTimeline from '@/lib/supabase/in_process_moments/getCollectionTimeline';
@@ -283,6 +287,43 @@ describe('getTimelineHandler', () => {
 
       expect(getInProcessTimeline).toHaveBeenCalledWith(
         expect.objectContaining({ curated: false })
+      );
+    });
+
+    it('passes the cached total count to getInProcessTimeline', async () => {
+      vi.mocked(getTimelineTotalCount).mockResolvedValue(33610);
+      vi.mocked(getInProcessTimeline).mockResolvedValue({
+        data: MOCK_DATA as any,
+        error: null,
+      });
+
+      await getTimelineHandler({ ...BASE_PARAMS, curated: true });
+
+      expect(getTimelineTotalCount).toHaveBeenCalledWith({
+        chainId: null,
+        hidden: false,
+        mime: undefined,
+        period: undefined,
+        channel: undefined,
+        curated: true,
+        protocol: undefined,
+      });
+      expect(getInProcessTimeline).toHaveBeenCalledWith(
+        expect.objectContaining({ totalCount: 33610 })
+      );
+    });
+
+    it('omits the total count when it is unavailable', async () => {
+      vi.mocked(getTimelineTotalCount).mockResolvedValue(undefined);
+      vi.mocked(getInProcessTimeline).mockResolvedValue({
+        data: MOCK_DATA as any,
+        error: null,
+      });
+
+      await getTimelineHandler(BASE_PARAMS);
+
+      expect(getInProcessTimeline).toHaveBeenCalledWith(
+        expect.objectContaining({ totalCount: undefined })
       );
     });
 
