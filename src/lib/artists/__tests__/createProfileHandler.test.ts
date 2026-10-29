@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+vi.mock('@/lib/timeline/invalidateTimelineCache', () => ({
+  default: vi.fn(),
+}));
+
 vi.mock('@/lib/supabase/in_process_artists/upsertArtists', () => ({
   upsertArtists: vi.fn(),
 }));
