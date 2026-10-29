@@ -8,6 +8,12 @@ vi.mock('@/lib/sleep', () => ({ default: vi.fn() }));
 vi.mock('@/lib/timeline/invalidateTimelineCache', () => ({
   default: vi.fn(),
 }));
+vi.mock('@/lib/timeline/getTimelineTotalCount', () => ({
+  default: vi.fn(),
+}));
+vi.mock('@/lib/timeline/timelineCache', () => ({
+  HOME_TIMELINE_COUNT_PARAMS: { chainId: null, hidden: false, curated: true },
+}));
 vi.mock('@/lib/consts', () => ({
   INDEX_INTERVAL_MS: 500,
   INDEX_INTERVAL_EMPTY_MS: 1000,
@@ -19,6 +25,7 @@ import loadCachedTimestamps from '@/lib/redis/loadCachedTimestamps';
 import saveCachedTimestamps from '@/lib/redis/saveCachedTimestamps';
 import sleep from '@/lib/sleep';
 import invalidateTimelineCache from '@/lib/timeline/invalidateTimelineCache';
+import getTimelineTotalCount from '@/lib/timeline/getTimelineTotalCount';
 import runIndexerHandler from '../runIndexerHandler';
 
 const mockIndexers = indexers as any[];
@@ -145,6 +152,28 @@ describe('runIndexerHandler', () => {
       await runIndexerHandler(DURATION);
 
       expect(invalidateTimelineCache).not.toHaveBeenCalled();
+    });
+
+    it('warms the home timeline count after a cycle that returned data', async () => {
+      vi.mocked(executeIndexers).mockResolvedValue(true);
+      advancePastDeadline(DURATION);
+
+      await runIndexerHandler(DURATION);
+
+      expect(getTimelineTotalCount).toHaveBeenCalledWith({
+        chainId: null,
+        hidden: false,
+        curated: true,
+      });
+    });
+
+    it('does not warm the home timeline count after an empty cycle', async () => {
+      vi.mocked(executeIndexers).mockResolvedValue(false);
+      advancePastDeadline(DURATION);
+
+      await runIndexerHandler(DURATION);
+
+      expect(getTimelineTotalCount).not.toHaveBeenCalled();
     });
 
     it('sleeps with INDEX_INTERVAL_MS (500) when data was found', async () => {
