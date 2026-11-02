@@ -8,6 +8,9 @@ const nextConfig: NextConfig = {
     '@opentelemetry/exporter-trace-otlp-http',
     '@ar.io/wayfinder-core',
   ],
+  outputFileTracingIncludes: {
+    '/api/og/**': ['./assets/fonts/**'],
+  },
   async headers() {
     return [
       {

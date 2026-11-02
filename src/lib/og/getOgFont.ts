@@ -1,9 +1,14 @@
-import { SITE_ORIGINAL_URL } from '@/lib/consts';
+import { readFile } from 'fs/promises';
+import path from 'path';
 
 const getOgFont = async (fileName: string): Promise<ArrayBuffer> => {
-  const res = await fetch(`${SITE_ORIGINAL_URL}/fonts/${fileName}`);
-  if (!res.ok) throw Error(`failed to fetch ${fileName}: ${res.status}`);
-  return res.arrayBuffer();
+  const buffer = await readFile(
+    path.join(process.cwd(), 'assets', 'fonts', fileName)
+  );
+  return buffer.buffer.slice(
+    buffer.byteOffset,
+    buffer.byteOffset + buffer.byteLength
+  ) as ArrayBuffer;
 };
 
 export default getOgFont;

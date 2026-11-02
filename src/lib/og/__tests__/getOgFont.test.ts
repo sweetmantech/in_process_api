@@ -1,28 +1,33 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import getOgFont from '@/lib/og/getOgFont';
-import { SITE_ORIGINAL_URL } from '@/lib/consts';
+import path from 'path';
 
-const fetchMock = vi.fn();
+vi.mock('fs/promises', () => ({
+  readFile: vi.fn(),
+}));
+
+import { readFile } from 'fs/promises';
+import getOgFont from '@/lib/og/getOgFont';
+
+const mockReadFile = vi.mocked(readFile);
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.stubGlobal('fetch', fetchMock);
 });
 
 describe('getOgFont', () => {
-  it('fetches the font file from the site fonts folder', async () => {
-    fetchMock.mockResolvedValue(new Response('font'));
+  it('reads the font file from the bundled assets folder', async () => {
+    mockReadFile.mockResolvedValue(Buffer.from('font') as never);
 
     const font = await getOgFont('Spectral-Italic.ttf');
 
-    expect(fetchMock).toHaveBeenCalledWith(
-      `${SITE_ORIGINAL_URL}/fonts/Spectral-Italic.ttf`
+    expect(mockReadFile).toHaveBeenCalledWith(
+      path.join(process.cwd(), 'assets', 'fonts', 'Spectral-Italic.ttf')
     );
     expect(font.byteLength).toBe(4);
   });
 
-  it('throws when the font cannot be fetched', async () => {
-    fetchMock.mockResolvedValue(new Response('', { status: 404 }));
+  it('throws when the font file is missing', async () => {
+    mockReadFile.mockRejectedValue(new Error('ENOENT: Missing.ttf'));
 
     await expect(getOgFont('Missing.ttf')).rejects.toThrow('Missing.ttf');
   });
