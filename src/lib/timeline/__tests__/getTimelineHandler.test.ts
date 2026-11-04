@@ -33,6 +33,7 @@ const BASE_PARAMS = {
   type: undefined as 'mutual' | 'default' | undefined,
   protocol: undefined as string | undefined,
   curated: false,
+  future: true,
 };
 
 const MOCK_DATA = {
@@ -287,6 +288,19 @@ describe('getTimelineHandler', () => {
 
       expect(getInProcessTimeline).toHaveBeenCalledWith(
         expect.objectContaining({ curated: false })
+      );
+    });
+
+    it('passes future to getInProcessTimeline', async () => {
+      vi.mocked(getInProcessTimeline).mockResolvedValue({
+        data: MOCK_DATA as any,
+        error: null,
+      });
+
+      await getTimelineHandler({ ...BASE_PARAMS, future: false });
+
+      expect(getInProcessTimeline).toHaveBeenCalledWith(
+        expect.objectContaining({ future: false })
       );
     });
 

@@ -35,6 +35,10 @@ const timelineQuerySchema = z
       .string()
       .optional()
       .transform((v) => v === 'true'),
+    future: z
+      .string()
+      .optional()
+      .transform((v) => v !== 'false'),
   })
   .transform(({ chain_id, content_type, ...rest }) => ({
     ...rest,

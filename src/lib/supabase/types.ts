@@ -987,6 +987,7 @@ export type Database = {
           p_chainid?: number;
           p_channel?: string;
           p_curated?: boolean;
+          p_future?: boolean;
           p_hidden?: boolean;
           p_limit?: number;
           p_mime?: string;

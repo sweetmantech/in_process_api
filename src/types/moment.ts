@@ -89,6 +89,7 @@ export interface GetInProcessTimelineParams {
   curated?: boolean;
   protocol?: string;
   totalCount?: number;
+  future?: boolean;
 }
 
 export interface TimelineCountParams {
