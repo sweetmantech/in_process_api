@@ -18,6 +18,7 @@ interface TimelineParams {
   type?: 'mutual' | 'default';
   protocol?: string;
   curated: boolean;
+  future: boolean;
 }
 
 const getTimelineHandler = async ({
@@ -33,6 +34,7 @@ const getTimelineHandler = async ({
   type,
   protocol,
   curated,
+  future,
 }: TimelineParams) => {
   if (collection) {
     const { data, error } = await getCollectionTimeline({
@@ -122,6 +124,7 @@ const getTimelineHandler = async ({
     curated,
     protocol,
     totalCount,
+    future,
   });
   if (error)
     return NextResponse.json(

@@ -15,6 +15,7 @@ const getInProcessTimeline = async ({
   curated = false,
   protocol,
   totalCount,
+  future = true,
 }: GetInProcessTimelineParams = {}): Promise<{
   data: GetInProcessTimelineResponse | null;
   error: Error | null;
@@ -30,6 +31,7 @@ const getInProcessTimeline = async ({
     p_curated: curated,
     p_protocol: protocol,
     p_total_count: totalCount,
+    p_future: future,
   });
 
   if (error) {

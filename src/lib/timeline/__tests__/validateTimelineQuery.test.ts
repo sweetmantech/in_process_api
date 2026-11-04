@@ -83,6 +83,23 @@ describe('validateTimelineQuery', () => {
     });
   });
 
+  describe('future param', () => {
+    it('defaults to true when absent', () => {
+      const result = validateTimelineQuery(makeRequest());
+      expect((result as any).future).toBe(true);
+    });
+
+    it('returns false when future=false', () => {
+      const result = validateTimelineQuery(makeRequest({ future: 'false' }));
+      expect((result as any).future).toBe(false);
+    });
+
+    it('returns true when future=true', () => {
+      const result = validateTimelineQuery(makeRequest({ future: 'true' }));
+      expect((result as any).future).toBe(true);
+    });
+  });
+
   describe('chain_id param', () => {
     it('returns null when chain_id not provided (prod default — all prod chains)', () => {
       const result = validateTimelineQuery(makeRequest());
