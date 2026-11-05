@@ -74,6 +74,43 @@ describe('validateCreateProfileBody', () => {
     expect((result as NextResponse).status).toBe(400);
   });
 
+  it('trims and lowercases handle', async () => {
+    const result = await validateCreateProfileBody(
+      makeRequest({ handle: '  Sofractures.ETH ' })
+    );
+
+    expect(result).not.toBeInstanceOf(NextResponse);
+    expect((result as any).handle).toBe('sofractures.eth');
+  });
+
+  it('transforms empty handle to null', async () => {
+    const result = await validateCreateProfileBody(
+      makeRequest({ handle: '  ' })
+    );
+
+    expect(result).not.toBeInstanceOf(NextResponse);
+    expect((result as any).handle).toBeNull();
+  });
+
+  it('leaves handle undefined when omitted', async () => {
+    const result = await validateCreateProfileBody(
+      makeRequest({ username: 'testartist' })
+    );
+
+    expect(result).not.toBeInstanceOf(NextResponse);
+    expect(result).not.toHaveProperty('handle');
+  });
+
+  it.each(['ab', 'bad handle', 'manage', '0xabc'])(
+    'returns 400 for invalid handle %s',
+    async (handle) => {
+      const result = await validateCreateProfileBody(makeRequest({ handle }));
+
+      expect(result).toBeInstanceOf(NextResponse);
+      expect((result as NextResponse).status).toBe(400);
+    }
+  );
+
   it('forwards auth middleware response', async () => {
     vi.mocked(authMiddleware).mockResolvedValue(
       NextResponse.json({ message: 'Unauthorized' }, { status: 401 })

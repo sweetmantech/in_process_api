@@ -37,6 +37,7 @@ const NORMALIZED = ADDRESS.toLowerCase();
 const EXISTING_ARTIST = {
   id: 'artist-existing',
   username: 'dwn2erth',
+  handle: 'dwn2erth',
   bio: 'bio',
   instagram: null,
   x: null,
@@ -111,7 +112,7 @@ describe('getArtistProfile', () => {
     expect(profile).toMatchObject({ id: 'artist-new', username: null });
   });
 
-  it('returns existing named profile without resolving username', async () => {
+  it('returns existing named profile with handle without resolving username', async () => {
     vi.mocked(upsertWallets).mockResolvedValue([
       {
         address: NORMALIZED,
@@ -128,6 +129,7 @@ describe('getArtistProfile', () => {
     expect(profile).toMatchObject({
       id: EXISTING_ARTIST.id,
       username: 'dwn2erth',
+      handle: 'dwn2erth',
     });
   });
 

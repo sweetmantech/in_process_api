@@ -8,6 +8,7 @@ type UpsertedWallet = {
   artist: {
     id: string;
     username: string | null;
+    handle: string | null;
     bio: string | null;
     instagram: string | null;
     x: string | null;
@@ -24,7 +25,7 @@ const upsertWallets = async (
     .from('in_process_wallets')
     .upsert(wallets, { onConflict: 'address', ignoreDuplicates })
     .select(
-      'address, artist_id:artist, eoa, artist:in_process_artists(id, username, bio, instagram, x, telegram)'
+      'address, artist_id:artist, eoa, artist:in_process_artists(id, username, handle, bio, instagram, x, telegram)'
     );
   if (error) throw error;
   return data ?? [];

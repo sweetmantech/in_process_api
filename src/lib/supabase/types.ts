@@ -176,6 +176,7 @@ export type Database = {
         Row: {
           bio: string | null;
           default_collection: string | null;
+          handle: string | null;
           id: string;
           instagram: string | null;
           telegram: string | null;
@@ -185,6 +186,7 @@ export type Database = {
         Insert: {
           bio?: string | null;
           default_collection?: string | null;
+          handle?: string | null;
           id?: string;
           instagram?: string | null;
           telegram?: string | null;
@@ -194,6 +196,7 @@ export type Database = {
         Update: {
           bio?: string | null;
           default_collection?: string | null;
+          handle?: string | null;
           id?: string;
           instagram?: string | null;
           telegram?: string | null;

@@ -10,6 +10,7 @@ import { upsertArtistNames } from '@/lib/supabase/in_process_artists/upsertArtis
 const emptyProfile = {
   id: undefined as string | undefined,
   username: null as string | null,
+  handle: null as string | null,
   bio: null as string | null,
   instagram: null as string | null,
   x: null as string | null,

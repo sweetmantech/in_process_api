@@ -9,6 +9,7 @@ vi.mock('@/lib/supabase/in_process_artists/upsertArtists', () => ({
 }));
 
 import { upsertArtists } from '@/lib/supabase/in_process_artists/upsertArtists';
+import invalidateTimelineCache from '@/lib/timeline/invalidateTimelineCache';
 import createProfileHandler from '@/lib/artists/createProfileHandler';
 
 const ARTIST = {
@@ -32,6 +33,7 @@ describe('createProfileHandler', () => {
     const res = await createProfileHandler({
       artist: ARTIST,
       username: 'testartist',
+      handle: 'testartist',
       bio: 'hello',
       instagram: '@insta',
       x: '@x',
@@ -42,6 +44,7 @@ describe('createProfileHandler', () => {
     expect(upsertArtists).toHaveBeenCalledWith({
       id: ARTIST.artistId,
       username: 'testartist',
+      handle: 'testartist',
       bio: 'hello',
       instagram: '@insta',
       x: '@x',
@@ -58,11 +61,33 @@ describe('createProfileHandler', () => {
     expect(upsertArtists).toHaveBeenCalledWith({
       id: ARTIST.artistId,
       username: null,
+      handle: undefined,
       bio: undefined,
       instagram: undefined,
       x: undefined,
       telegram: undefined,
     });
+  });
+
+  it('returns 409 when the handle is already taken', async () => {
+    vi.mocked(upsertArtists).mockRejectedValue({
+      code: '23505',
+      message:
+        'duplicate key value violates unique constraint "in_process_artists_handle_key"',
+    });
+
+    const res = await createProfileHandler({
+      artist: ARTIST,
+      username: 'testartist',
+      handle: 'taken',
+    });
+
+    expect(res.status).toBe(409);
+    expect(await res.json()).toEqual({
+      error: 'handle_taken',
+      message: 'Handle is already taken',
+    });
+    expect(invalidateTimelineCache).not.toHaveBeenCalled();
   });
 
   it('throws when upsertArtists fails', async () => {
