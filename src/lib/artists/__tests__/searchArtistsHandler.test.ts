@@ -48,7 +48,7 @@ describe('searchArtistsHandler', () => {
     expect(selectArtists).toHaveBeenCalledWith({ q: 'bob', limit: 25 });
   });
 
-  it('looks up by handle only, ignoring query and limit', async () => {
+  it('looks up by handle only and returns a single artist object', async () => {
     vi.mocked(selectArtists).mockResolvedValue({
       data: [
         {
@@ -68,18 +68,17 @@ describe('searchArtistsHandler', () => {
     });
 
     expect(selectArtists).toHaveBeenCalledWith({ handle: 'sofractures.eth' });
+    expect(res.status).toBe(200);
     expect(await res.json()).toEqual({
-      artists: [
-        {
-          username: 'Sofractures',
-          handle: 'sofractures.eth',
-          wallets: WALLETS_1,
-        },
-      ],
+      artist: {
+        username: 'Sofractures',
+        handle: 'sofractures.eth',
+        wallets: WALLETS_1,
+      },
     });
   });
 
-  it('returns an empty artists array when no artist has the handle', async () => {
+  it('returns 404 when no artist has the handle', async () => {
     vi.mocked(selectArtists).mockResolvedValue({
       data: [],
       count: 0,
@@ -88,8 +87,8 @@ describe('searchArtistsHandler', () => {
 
     const res = await searchArtistsHandler({ handle: 'nobody', limit: 10 });
 
-    expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ artists: [] });
+    expect(res.status).toBe(404);
+    expect(await res.json()).toEqual({ message: 'Artist not found' });
   });
 
   it('returns an empty artists array when no matches are found', async () => {

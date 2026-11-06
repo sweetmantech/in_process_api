@@ -20,6 +20,17 @@ const searchArtistsHandler = async ({
     wallets: a.wallets,
   }));
 
+  if (handle) {
+    const [artist] = artists;
+    if (!artist) {
+      return NextResponse.json(
+        { message: 'Artist not found' },
+        { status: 404 }
+      );
+    }
+    return NextResponse.json({ artist });
+  }
+
   return NextResponse.json({ artists });
 };
 
