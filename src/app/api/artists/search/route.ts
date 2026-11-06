@@ -6,7 +6,7 @@ export async function GET(req: NextRequest) {
   try {
     const validated = validateSearchArtistsQuery(req);
     if (validated instanceof NextResponse) return validated;
-    return await searchArtistsHandler(validated.query, validated.limit);
+    return await searchArtistsHandler(validated);
   } catch (e: any) {
     console.error('Error searching artists:', e);
     return Response.json(

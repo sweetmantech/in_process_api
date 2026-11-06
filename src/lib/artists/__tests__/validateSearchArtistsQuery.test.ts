@@ -35,6 +35,26 @@ describe('validateSearchArtistsQuery', () => {
     expect((result as any).limit).toBe(25);
   });
 
+  it('accepts handle without query, trimmed and lowercased', () => {
+    const result = validateSearchArtistsQuery(
+      makeRequest({ handle: '  Sofractures.ETH ' })
+    );
+
+    expect(result).not.toBeInstanceOf(NextResponse);
+    expect((result as any).handle).toBe('sofractures.eth');
+    expect((result as any).query).toBeUndefined();
+  });
+
+  it.each(['ab', 'bad handle', '../admin', 'manage', '0xabc'])(
+    'returns 400 for invalid handle %s',
+    (handle) => {
+      const result = validateSearchArtistsQuery(makeRequest({ handle }));
+
+      expect(result).toBeInstanceOf(NextResponse);
+      expect((result as NextResponse).status).toBe(400);
+    }
+  );
+
   it('returns 400 when query is missing', () => {
     const result = validateSearchArtistsQuery(makeRequest());
 
