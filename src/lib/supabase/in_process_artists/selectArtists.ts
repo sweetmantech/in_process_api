@@ -2,6 +2,7 @@ import { supabase } from '@/lib/supabase/client';
 
 const selectArtists = async ({
   ids,
+  handle,
   telegram,
   q,
   type = 'human',
@@ -9,6 +10,7 @@ const selectArtists = async ({
   page = 1,
 }: {
   ids?: string[];
+  handle?: string;
   telegram?: string;
   q?: string;
   type?: 'human' | 'bot';
@@ -18,12 +20,14 @@ const selectArtists = async ({
   let query = supabase
     .from('in_process_artists')
     .select(
-      'id, username, bio, x, telegram, instagram, default_collection, wallets:in_process_wallets!inner(*)',
+      'id, username, handle, bio, x, telegram, instagram, default_collection, wallets:in_process_wallets!inner(*)',
       { count: 'exact' }
     );
 
   if (ids?.length) {
     query = query.in('id', ids);
+  } else if (handle) {
+    query = query.eq('handle', handle).limit(1);
   } else if (telegram) {
     query = query.eq('telegram', telegram.toLowerCase()).limit(1);
   } else if (q?.trim()) {

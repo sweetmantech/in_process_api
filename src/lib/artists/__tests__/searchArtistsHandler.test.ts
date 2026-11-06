@@ -18,20 +18,20 @@ describe('searchArtistsHandler', () => {
   it('returns mapped artists with username and wallets fields', async () => {
     vi.mocked(selectArtists).mockResolvedValue({
       data: [
-        { username: 'alice', wallets: WALLETS_1 },
-        { username: 'alice2', wallets: WALLETS_2 },
+        { username: 'alice', handle: 'alice', wallets: WALLETS_1 },
+        { username: 'alice2', handle: null, wallets: WALLETS_2 },
       ],
       count: 2,
       error: null,
     } as any);
 
-    const res = await searchArtistsHandler('alice', 10);
+    const res = await searchArtistsHandler({ query: 'alice', limit: 10 });
     const json = await res.json();
 
     expect(json).toEqual({
       artists: [
-        { username: 'alice', wallets: WALLETS_1 },
-        { username: 'alice2', wallets: WALLETS_2 },
+        { username: 'alice', handle: 'alice', wallets: WALLETS_1 },
+        { username: 'alice2', handle: null, wallets: WALLETS_2 },
       ],
     });
   });
@@ -43,9 +43,53 @@ describe('searchArtistsHandler', () => {
       error: null,
     } as any);
 
-    await searchArtistsHandler('bob', 25);
+    await searchArtistsHandler({ query: 'bob', limit: 25 });
 
     expect(selectArtists).toHaveBeenCalledWith({ q: 'bob', limit: 25 });
+  });
+
+  it('looks up by handle only, ignoring query and limit', async () => {
+    vi.mocked(selectArtists).mockResolvedValue({
+      data: [
+        {
+          username: 'Sofractures',
+          handle: 'sofractures.eth',
+          wallets: WALLETS_1,
+        },
+      ],
+      count: 1,
+      error: null,
+    } as any);
+
+    const res = await searchArtistsHandler({
+      query: 'sof',
+      handle: 'sofractures.eth',
+      limit: 25,
+    });
+
+    expect(selectArtists).toHaveBeenCalledWith({ handle: 'sofractures.eth' });
+    expect(await res.json()).toEqual({
+      artists: [
+        {
+          username: 'Sofractures',
+          handle: 'sofractures.eth',
+          wallets: WALLETS_1,
+        },
+      ],
+    });
+  });
+
+  it('returns an empty artists array when no artist has the handle', async () => {
+    vi.mocked(selectArtists).mockResolvedValue({
+      data: [],
+      count: 0,
+      error: null,
+    } as any);
+
+    const res = await searchArtistsHandler({ handle: 'nobody', limit: 10 });
+
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ artists: [] });
   });
 
   it('returns an empty artists array when no matches are found', async () => {
@@ -55,7 +99,7 @@ describe('searchArtistsHandler', () => {
       error: null,
     } as any);
 
-    const res = await searchArtistsHandler('nobody', 10);
+    const res = await searchArtistsHandler({ query: 'nobody', limit: 10 });
     const json = await res.json();
 
     expect(res.status).toBe(200);
@@ -69,7 +113,7 @@ describe('searchArtistsHandler', () => {
       error: null,
     } as any);
 
-    const res = await searchArtistsHandler('ghost', 10);
+    const res = await searchArtistsHandler({ query: 'ghost', limit: 10 });
     const json = await res.json();
 
     expect(res.status).toBe(200);
@@ -79,8 +123,8 @@ describe('searchArtistsHandler', () => {
   it('throws when supabase returns an error', async () => {
     vi.mocked(selectArtists).mockRejectedValue(new Error('DB failure'));
 
-    await expect(searchArtistsHandler('alice', 10)).rejects.toThrow(
-      'DB failure'
-    );
+    await expect(
+      searchArtistsHandler({ query: 'alice', limit: 10 })
+    ).rejects.toThrow('DB failure');
   });
 });
