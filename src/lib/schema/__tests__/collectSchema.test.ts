@@ -29,6 +29,15 @@ describe('collectSchema', () => {
     expect(collectSchema.parse(base).quantity).toBe(1);
   });
 
+  it('defaults comment when omitted', () => {
+    const { comment: _comment, ...withoutComment } = base;
+    expect(collectSchema.parse(withoutComment).comment).toBe('In Process!!!');
+  });
+
+  it('keeps an empty comment', () => {
+    expect(collectSchema.parse(base).comment).toBe('');
+  });
+
   it.each(['', '1', 0, -1, 1.5])('rejects %j', (value) => {
     expect(collectSchema.safeParse({ ...base, quantity: value }).success).toBe(
       false
