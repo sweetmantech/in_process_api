@@ -11,8 +11,8 @@ const base = {
 };
 
 describe('collectSchema', () => {
-  it('accepts quantity', () => {
-    expect(collectSchema.parse({ ...base, quantity: 2 }).quantity).toBe(2);
+  it.each([1, 2])('accepts quantity %j', (quantity) => {
+    expect(collectSchema.parse({ ...base, quantity }).quantity).toBe(quantity);
   });
 
   it('accepts amount', () => {
@@ -25,9 +25,16 @@ describe('collectSchema', () => {
     ).toBe(2);
   });
 
-  it('rejects a body with neither', () => {
-    const result = collectSchema.safeParse(base);
-    expect(result.success).toBe(false);
-    expect(result.error?.issues[0].path).toEqual(['quantity']);
+  it('defaults to 1 when neither is sent', () => {
+    expect(collectSchema.parse(base).quantity).toBe(1);
+  });
+
+  it.each(['', '1', 0, -1, 1.5])('rejects %j', (value) => {
+    expect(collectSchema.safeParse({ ...base, quantity: value }).success).toBe(
+      false
+    );
+    expect(collectSchema.safeParse({ ...base, amount: value }).success).toBe(
+      false
+    );
   });
 });
