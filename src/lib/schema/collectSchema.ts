@@ -14,5 +14,5 @@ export const collectSchema = z
   })
   .transform(({ quantity, amount, ...rest }) => ({
     ...rest,
-    amount: (quantity ?? amount) as number,
+    quantity: (quantity ?? amount) as number,
   }));

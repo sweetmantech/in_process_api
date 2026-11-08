@@ -12,16 +12,16 @@ const base = {
 
 describe('collectSchema', () => {
   it('accepts quantity', () => {
-    expect(collectSchema.parse({ ...base, quantity: 2 }).amount).toBe(2);
+    expect(collectSchema.parse({ ...base, quantity: 2 }).quantity).toBe(2);
   });
 
   it('accepts amount', () => {
-    expect(collectSchema.parse({ ...base, amount: 3 }).amount).toBe(3);
+    expect(collectSchema.parse({ ...base, amount: 3 }).quantity).toBe(3);
   });
 
   it('prefers quantity when both are sent', () => {
     expect(
-      collectSchema.parse({ ...base, quantity: 2, amount: 3 }).amount
+      collectSchema.parse({ ...base, quantity: 2, amount: 3 }).quantity
     ).toBe(2);
   });
 
