@@ -93,7 +93,7 @@ describe('collectMoment', () => {
       collectMoment({
         moment,
         comment: '',
-        amount: 1,
+        quantity: 1,
         artistId: 'artist-1',
         primaryWallet: PRIMARY_WALLET,
       })
@@ -106,7 +106,7 @@ describe('collectMoment', () => {
     const result = await collectMoment({
       moment,
       comment: '',
-      amount: 2,
+      quantity: 2,
       artistId: 'artist-1',
       primaryWallet: PRIMARY_WALLET,
     });
@@ -118,7 +118,7 @@ describe('collectMoment', () => {
     await collectMoment({
       moment,
       comment: '',
-      amount: 2,
+      quantity: 2,
       artistId: 'artist-1',
       primaryWallet: PRIMARY_WALLET,
     });
@@ -135,7 +135,7 @@ describe('collectMoment', () => {
     await collectMoment({
       moment,
       comment: 'nice track',
-      amount: 1,
+      quantity: 1,
       artistId: 'artist-1',
       primaryWallet: PRIMARY_WALLET,
     });

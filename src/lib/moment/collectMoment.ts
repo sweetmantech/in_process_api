@@ -21,20 +21,15 @@ export interface CollectResult {
   chainId: number;
 }
 
-/**
- * Collect a In Process 1155 token using a smart account via Coinbase CDP.
- * Accepts the full API input shape to collect a Moment.
- */
 export async function collectMoment({
   moment,
   comment,
-  amount,
+  quantity,
   artistId,
   primaryWallet,
 }: CollectMomentInput): Promise<CollectResult> {
   const smartAccount = await getArtistSmartAccount({ artistId });
 
-  // Get token info and sale config
   const { saleConfig, id: momentId } = await resolveMomentInfo(moment);
 
   if (!saleConfig) {
@@ -44,36 +39,32 @@ export async function collectMoment({
   const approveCall = await validateBalanceAndAllowance(
     smartAccount.address,
     saleConfig,
-    amount
+    quantity
   );
 
-  // Get the collect call using the shared function
   const collectCall = getCollectCall(
     moment.collectionAddress,
     Number(moment.tokenId),
     saleConfig,
     primaryWallet,
     comment,
-    amount
+    quantity
   );
 
   const calls = [...approveCall, collectCall] as OneOf<
     Call<unknown, { [key: string]: unknown }>
   >[];
 
-  // Send the transaction and wait for receipt using the helper
   const transaction = await sendUserOperation({
     smartAccount,
     network: IS_TESTNET ? 'base-sepolia' : 'base',
     calls,
   });
 
-  // Reflect the mint (and any inline comment) in Supabase right away, ahead
-  // of the async chain indexer.
   await recordCollectTransfer({
     momentId,
     recipient: primaryWallet,
-    quantity: amount,
+    quantity,
     transactionHash: transaction.transactionHash as Hash,
   });
   await recordCollectComment({
