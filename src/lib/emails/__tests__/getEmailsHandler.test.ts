@@ -8,7 +8,7 @@ vi.mock('@/lib/supabase/in_process_wallets/selectWallets', () => ({
   default: vi.fn(),
 }));
 
-vi.mock('@/lib/privy/getEmailByWalletAddress', () => ({
+vi.mock('@/lib/emails/lookupArtistEmail', () => ({
   default: vi.fn(),
 }));
 
@@ -17,7 +17,7 @@ vi.mock('@/lib/privy/getAllEmails', () => ({
 }));
 
 import selectWallets from '@/lib/supabase/in_process_wallets/selectWallets';
-import getEmailByWalletAddress from '@/lib/privy/getEmailByWalletAddress';
+import lookupArtistEmail from '@/lib/emails/lookupArtistEmail';
 import getAllEmails from '@/lib/privy/getAllEmails';
 import getEmailsHandler from '@/lib/emails/getEmailsHandler';
 
@@ -33,91 +33,44 @@ describe('getEmailsHandler', () => {
 
   describe('non-admin (normal API key)', () => {
     it('returns own email using callerAddress', async () => {
-      vi.mocked(selectWallets)
-        .mockResolvedValueOnce({
-          data: [{ artist_id: ARTIST_UUID }],
-          error: null,
-        } as any)
-        .mockResolvedValueOnce({
-          data: [{ address: '0xsocialwallet' }],
-          error: null,
-        } as any);
-      vi.mocked(getEmailByWalletAddress).mockResolvedValue(
-        'artist@example.com'
-      );
+      vi.mocked(lookupArtistEmail).mockResolvedValue('artist@example.com');
 
       const res = await getEmailsHandler(NON_ADMIN_ADDRESS);
       const json = await res.json();
 
+      expect(lookupArtistEmail).toHaveBeenCalledWith(NON_ADMIN_ADDRESS);
       expect(json).toEqual({ email: 'artist@example.com' });
     });
 
-    it('returns null email when no privy wallet found', async () => {
-      vi.mocked(selectWallets)
-        .mockResolvedValueOnce({
-          data: [{ artist_id: ARTIST_UUID }],
-          error: null,
-        } as any)
-        .mockResolvedValueOnce({ data: [], error: null } as any);
+    it('returns null email when none is found', async () => {
+      vi.mocked(lookupArtistEmail).mockResolvedValue(null);
 
       const res = await getEmailsHandler(NON_ADMIN_ADDRESS);
       const json = await res.json();
 
       expect(json).toEqual({ email: null });
-      expect(getEmailByWalletAddress).not.toHaveBeenCalled();
     });
 
     it('ignores artist_address param and returns own email', async () => {
-      vi.mocked(selectWallets)
-        .mockResolvedValueOnce({
-          data: [{ artist_id: ARTIST_UUID }],
-          error: null,
-        } as any)
-        .mockResolvedValueOnce({
-          data: [{ address: '0xsocialwallet' }],
-          error: null,
-        } as any);
-      vi.mocked(getEmailByWalletAddress).mockResolvedValue('own@example.com');
+      vi.mocked(lookupArtistEmail).mockResolvedValue('own@example.com');
 
       const res = await getEmailsHandler(NON_ADMIN_ADDRESS, OTHER_ADDRESS);
       const json = await res.json();
 
+      expect(lookupArtistEmail).toHaveBeenCalledWith(NON_ADMIN_ADDRESS);
       expect(json).toEqual({ email: 'own@example.com' });
     });
   });
 
   describe('admin with artist_address', () => {
     it('returns email for specified artist', async () => {
-      vi.mocked(selectWallets)
-        .mockResolvedValueOnce({
-          data: [{ artist_id: ARTIST_UUID }],
-          error: null,
-        } as any)
-        .mockResolvedValueOnce({
-          data: [{ address: '0xsocialwallet' }],
-          error: null,
-        } as any);
-      vi.mocked(getEmailByWalletAddress).mockResolvedValue(
-        'artist@example.com'
-      );
+      vi.mocked(lookupArtistEmail).mockResolvedValue('artist@example.com');
 
       const res = await getEmailsHandler(ADMIN_ADDRESS, OTHER_ADDRESS);
       const json = await res.json();
 
+      expect(lookupArtistEmail).toHaveBeenCalledWith(OTHER_ADDRESS);
       expect(json).toEqual({ email: 'artist@example.com' });
-    });
-
-    it('returns null email when no artistId found', async () => {
-      vi.mocked(selectWallets).mockResolvedValue({
-        data: [],
-        error: null,
-      } as any);
-
-      const res = await getEmailsHandler(ADMIN_ADDRESS, OTHER_ADDRESS);
-      const json = await res.json();
-
-      expect(json).toEqual({ email: null });
-      expect(getEmailByWalletAddress).not.toHaveBeenCalled();
     });
   });
 
