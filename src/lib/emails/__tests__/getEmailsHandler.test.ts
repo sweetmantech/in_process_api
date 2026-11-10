@@ -173,5 +173,18 @@ describe('getEmailsHandler', () => {
 
       expect(getAllEmails).toHaveBeenCalledWith('cursor-abc', 10);
     });
+
+    it('skips the wallet queries when the page has no emails', async () => {
+      vi.mocked(getAllEmails).mockResolvedValue({
+        emails: [],
+        next_cursor: null,
+      } as any);
+
+      const res = await getEmailsHandler(ADMIN_ADDRESS);
+      const json = await res.json();
+
+      expect(selectWallets).not.toHaveBeenCalled();
+      expect(json).toEqual({ emails: [], next_cursor: null });
+    });
   });
 });
