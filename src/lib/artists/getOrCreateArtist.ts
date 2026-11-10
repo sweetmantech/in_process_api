@@ -4,7 +4,7 @@ import selectWallets from '../supabase/in_process_wallets/selectWallets';
 import { upsertArtists } from '../supabase/in_process_artists/upsertArtists';
 import type { ArtistContext } from '@/types/artist';
 import { WalletType } from '@/types/wallets';
-import isSmartWalletType from '../wallets/isSmartWalletType';
+import getPrimaryWallet from '../wallets/getPrimaryWallet';
 
 const getOrCreateArtist = async ({
   artistName,
@@ -31,20 +31,25 @@ const getOrCreateArtist = async ({
     }
   }
 
-  const { data: allWallets } = await selectWallets({ artistIds: [artistId] });
-  if (!allWallets?.length)
+  const { data: foundWallets } = await selectWallets({ artistIds: [artistId] });
+  if (!foundWallets?.length)
     throw new Error(`No wallets found for artist ${artistId}`);
 
-  const externalWallet = allWallets.find((w) => w.type === 'external')?.address;
-  const privyWallet = allWallets.find((w) => w.type === 'privy')?.address;
-  const eoaWallet = allWallets.find((w) => !isSmartWalletType(w.type));
+  const untyped = matched?.[0]?.type === null ? matched[0] : undefined;
+  const filled = foundWallets.map((w) =>
+    untyped && w.address === untyped.address ? { ...w, type: type ?? null } : w
+  );
+  const shouldFillType =
+    !!type &&
+    !!untyped &&
+    !foundWallets.some((w) => w.type === type) &&
+    getPrimaryWallet(filled) === getPrimaryWallet(foundWallets);
+  if (shouldFillType) await upsertWallets([{ address: untyped.address, type }]);
+  const allWallets = shouldFillType ? filled : foundWallets;
 
   return {
     artistId,
-    primaryWallet:
-      (externalWallet as Address) ||
-      (privyWallet as Address) ||
-      ((eoaWallet ?? allWallets[0]).address as Address),
+    primaryWallet: getPrimaryWallet(allWallets) as Address,
     wallets: allWallets.map((w) => ({
       address: w.address as Address,
       type: w.type as WalletType,
