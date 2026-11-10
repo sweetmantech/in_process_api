@@ -23,9 +23,9 @@ const getEmailsHandler = async (
   const { emails, next_cursor } = await getAllEmails(cursor, limit);
 
   const privyAddresses = emails.map((e) => e.address.toLowerCase());
-  const { data: privyRows } = await selectWallets({
-    addresses: privyAddresses,
-  });
+  const { data: privyRows } = privyAddresses.length
+    ? await selectWallets({ addresses: privyAddresses })
+    : { data: [] };
 
   const artistIds = [
     ...new Set(privyRows?.map((r) => r.artist_id).filter(Boolean) as string[]),
