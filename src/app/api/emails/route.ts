@@ -7,7 +7,7 @@ export async function GET(req: NextRequest) {
     const validated = await validateEmailsQuery(req);
     if (validated instanceof NextResponse) return validated;
     const { callerAddress, artist_address, cursor, limit } = validated;
-    return getEmailsHandler(callerAddress, artist_address, cursor, limit);
+    return await getEmailsHandler(callerAddress, artist_address, cursor, limit);
   } catch (e: any) {
     const message = e?.message ?? 'Failed to fetch emails';
     return Response.json({ message }, { status: 500 });
