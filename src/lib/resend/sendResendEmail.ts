@@ -16,10 +16,13 @@ export default async function sendResendEmail({
     throw new Error('[resend] Resend client not initialized');
   }
 
-  await resend.emails.send({
+  const { error } = await resend.emails.send({
     from: fromEmail,
     to,
     subject,
     html,
   });
+  if (error) {
+    throw new Error(`[resend] ${error.name}: ${error.message}`);
+  }
 }
