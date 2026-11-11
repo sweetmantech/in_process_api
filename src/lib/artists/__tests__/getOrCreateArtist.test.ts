@@ -139,6 +139,114 @@ describe('getOrCreateArtist', () => {
     });
   });
 
+  describe('filling a null wallet type', () => {
+    it('sets the type when the artist has no wallet of that type', async () => {
+      const wallets = [
+        makeWalletRow(ARTIST_ID, ADDRESS, null as never, 'Bob'),
+        makeWalletRow(ARTIST_ID, '0xoperator', 'operator', 'Bob'),
+      ];
+      mockSelectWallets([wallets[0]], wallets);
+
+      const result = await getOrCreateArtist({
+        address: ADDRESS,
+        type: 'privy',
+      });
+
+      expect(upsertWallets).toHaveBeenCalledWith([
+        { address: ADDRESS, type: 'privy' },
+      ]);
+      expect(result.primaryWallet).toBe(ADDRESS);
+      expect(result.wallets).toContainEqual({
+        address: ADDRESS,
+        type: 'privy',
+      });
+    });
+
+    it('keeps the external primary wallet when filling privy', async () => {
+      const wallets = [
+        makeWalletRow(ARTIST_ID, '0xexternal', 'external', 'Bob'),
+        makeWalletRow(ARTIST_ID, ADDRESS, null as never, 'Bob'),
+      ];
+      mockSelectWallets([wallets[1]], wallets);
+
+      const result = await getOrCreateArtist({
+        address: ADDRESS,
+        type: 'privy',
+      });
+
+      expect(upsertWallets).toHaveBeenCalledWith([
+        { address: ADDRESS, type: 'privy' },
+      ]);
+      expect(result.primaryWallet).toBe('0xexternal');
+    });
+
+    it('does not add a second wallet of the same type', async () => {
+      const wallets = [
+        makeWalletRow(ARTIST_ID, '0xexternal', 'external', 'Bob'),
+        makeWalletRow(ARTIST_ID, ADDRESS, null as never, 'Bob'),
+      ];
+      mockSelectWallets([wallets[1]], wallets);
+
+      const result = await getOrCreateArtist({
+        address: ADDRESS,
+        type: 'external',
+      });
+
+      expect(upsertWallets).not.toHaveBeenCalled();
+      expect(result.primaryWallet).toBe('0xexternal');
+    });
+
+    it('does not fill when it would change the primary wallet', async () => {
+      const wallets = [
+        makeWalletRow(ARTIST_ID, '0xprivy', 'privy', 'Bob'),
+        makeWalletRow(ARTIST_ID, ADDRESS, null as never, 'Bob'),
+      ];
+      mockSelectWallets([wallets[1]], wallets);
+
+      const result = await getOrCreateArtist({
+        address: ADDRESS,
+        type: 'external',
+      });
+
+      expect(upsertWallets).not.toHaveBeenCalled();
+      expect(result.primaryWallet).toBe('0xprivy');
+    });
+
+    it('does not fill when another untyped EOA is the primary wallet', async () => {
+      const wallets = [
+        makeWalletRow(ARTIST_ID, '0xlegacy', null as never, 'Bob'),
+        makeWalletRow(ARTIST_ID, ADDRESS, null as never, 'Bob'),
+      ];
+      mockSelectWallets([wallets[1]], wallets);
+
+      const result = await getOrCreateArtist({
+        address: ADDRESS,
+        type: 'privy',
+      });
+
+      expect(upsertWallets).not.toHaveBeenCalled();
+      expect(result.primaryWallet).toBe('0xlegacy');
+    });
+
+    it('does not change a wallet that already has a type', async () => {
+      const row = makeWalletRow(ARTIST_ID, ADDRESS, 'external', 'Bob');
+      mockSelectWallets([row], [row]);
+
+      await getOrCreateArtist({ address: ADDRESS, type: 'privy' });
+
+      expect(upsertWallets).not.toHaveBeenCalled();
+    });
+
+    it('does not fill when no type is given', async () => {
+      const row = makeWalletRow(ARTIST_ID, ADDRESS, null as never, 'Bob');
+      mockSelectWallets([row], [row]);
+
+      await getOrCreateArtist({ address: ADDRESS });
+
+      expect(upsertWallets).not.toHaveBeenCalled();
+    });
+  });
+
   describe('primaryWallet selection', () => {
     it('prefers external wallet', async () => {
       const wallets = [
