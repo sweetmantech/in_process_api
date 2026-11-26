@@ -9,10 +9,12 @@ import getTimelineTotalCount from '@/lib/timeline/getTimelineTotalCount';
 import { HOME_TIMELINE_COUNT_PARAMS } from '@/lib/timeline/timelineCache';
 import { INDEX_INTERVAL_MS, INDEX_INTERVAL_EMPTY_MS } from '@/lib/consts';
 
-// Reserve a little headroom before Vercel's hard timeout so in-flight work can flush.
-const SHUTDOWN_HEADROOM_MS = 2_000;
+const SHUTDOWN_HEADROOM_MS = 10_000;
 
-const runIndexerHandler = async (maxDurationSeconds: number) => {
+const runIndexerHandler = async (
+  maxDurationSeconds: number,
+  startedAt: number = Date.now()
+) => {
   let cachedTimestamps = await loadCachedTimestamps();
   if (!cachedTimestamps) {
     console.log('⚡ No Redis cache found — fetching timestamps from Supabase');
@@ -30,8 +32,8 @@ const runIndexerHandler = async (maxDurationSeconds: number) => {
     JSON.stringify(cachedTimestamps, null, 2)
   );
 
-  const deadline =
-    Date.now() + maxDurationSeconds * 1000 - SHUTDOWN_HEADROOM_MS;
+  const deadline = startedAt + maxDurationSeconds * 1000 - SHUTDOWN_HEADROOM_MS;
+  const remainingMs = () => Math.max(0, deadline - Date.now());
 
   while (Date.now() < deadline) {
     try {
@@ -42,10 +44,10 @@ const runIndexerHandler = async (maxDurationSeconds: number) => {
         await getTimelineTotalCount(HOME_TIMELINE_COUNT_PARAMS);
       }
       const sleepMs = hasData ? INDEX_INTERVAL_MS : INDEX_INTERVAL_EMPTY_MS;
-      await sleep(Math.min(sleepMs, deadline - Date.now()));
+      await sleep(Math.min(sleepMs, remainingMs()));
     } catch (error) {
       console.warn('⚠️ Warn in indexer cycle:', error);
-      await sleep(Math.min(INDEX_INTERVAL_MS, deadline - Date.now()));
+      await sleep(Math.min(INDEX_INTERVAL_MS, remainingMs()));
     }
   }
 
