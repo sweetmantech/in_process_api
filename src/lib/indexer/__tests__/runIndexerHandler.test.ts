@@ -35,10 +35,8 @@ const makeIndexer = (name: string, maxTs: number) => ({
   selectMaxTimestampFn: vi.fn().mockResolvedValue(maxTs),
 });
 
-// maxDurationSeconds=1 → deadline = now + 1000 - 2000 = now - 1000 (past) → loop never runs.
 const NO_LOOP_DURATION = 1;
 
-// Advances fake time past deadline on first sleep call so the loop runs exactly once.
 const advancePastDeadline = (maxDurationSeconds: number) => {
   vi.mocked(sleep).mockImplementationOnce(async () => {
     vi.setSystemTime(Date.now() + maxDurationSeconds * 1000);
@@ -104,7 +102,7 @@ describe('runIndexerHandler', () => {
   });
 
   describe('run loop', () => {
-    const DURATION = 5;
+    const DURATION = 15;
 
     beforeEach(() => {
       vi.mocked(loadCachedTimestamps).mockResolvedValue({ moments: 5000 });
@@ -194,6 +192,25 @@ describe('runIndexerHandler', () => {
 
       const sleepArg = vi.mocked(sleep).mock.calls[0][0];
       expect(sleepArg).toBeLessThanOrEqual(1000);
+    });
+
+    it('measures the deadline from startedAt, not from loop start', async () => {
+      const startedAt = Date.now() - DURATION * 1000;
+
+      await runIndexerHandler(DURATION, startedAt);
+
+      expect(executeIndexers).not.toHaveBeenCalled();
+    });
+
+    it('never sleeps for a negative duration when a cycle overruns the deadline', async () => {
+      vi.mocked(executeIndexers).mockImplementationOnce(async () => {
+        vi.setSystemTime(Date.now() + DURATION * 1000);
+        return false;
+      });
+
+      await runIndexerHandler(DURATION);
+
+      expect(vi.mocked(sleep).mock.calls[0][0]).toBe(0);
     });
 
     it('continues after an error in a cycle without throwing', async () => {

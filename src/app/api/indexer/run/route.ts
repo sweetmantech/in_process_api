@@ -6,8 +6,9 @@ export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
+  const startedAt = Date.now();
   const unauthorized = validateCronHandler(req);
   if (unauthorized) return unauthorized;
 
-  return runIndexerHandler(maxDuration);
+  return runIndexerHandler(maxDuration, startedAt);
 }
