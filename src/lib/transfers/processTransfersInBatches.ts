@@ -6,6 +6,7 @@ import type { Transfers_t } from '@/types/envio';
 import { distribute } from './distribute';
 import { mapTransfersToSupabase } from './mapTransfersToSupabase';
 import notifyAirdrop from './notifyAirdrop';
+import { notifyAirdropByEmail } from './notifyAirdropByEmail';
 import { notifyCollectByEmail } from './notifyCollectByEmail';
 
 export async function processTransfersInBatches(
@@ -44,6 +45,7 @@ export async function processTransfersInBatches(
       await upsertTransfers(rows);
       await notifyCollectByEmail(batch);
       await notifyAirdrop(processedTransfers);
+      await notifyAirdropByEmail(processedTransfers);
       totalProcessed += rows.length;
       console.log(
         `✅ Batch ${batchNumber}: Upserted ${rows.length} row(s) into in_process_transfers`

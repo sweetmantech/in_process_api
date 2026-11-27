@@ -6,6 +6,7 @@ vi.mock('../mapTransfersToSupabase', () => ({
   mapTransfersToSupabase: vi.fn(),
 }));
 vi.mock('../notifyAirdrop', () => ({ default: vi.fn() }));
+vi.mock('../notifyAirdropByEmail', () => ({ notifyAirdropByEmail: vi.fn() }));
 vi.mock('../notifyCollectByEmail', () => ({ notifyCollectByEmail: vi.fn() }));
 vi.mock('@/lib/wallets/ensureWallets', () => ({
   ensureWallets: vi.fn(),
@@ -24,6 +25,7 @@ import { ensureWallets } from '@/lib/wallets/ensureWallets';
 import resolveCollectorNames from '@/lib/wallets/resolveCollectorNames';
 import { upsertTransfers } from '@/lib/supabase/in_process_transfers/upsertTransfers';
 import notifyAirdrop from '../notifyAirdrop';
+import { notifyAirdropByEmail } from '../notifyAirdropByEmail';
 import { notifyCollectByEmail } from '../notifyCollectByEmail';
 import type { Transfers_t } from '@/types/envio';
 
@@ -33,6 +35,7 @@ const mockEnsureArtists = vi.mocked(ensureWallets);
 const mockResolveCollectorNames = vi.mocked(resolveCollectorNames);
 const mockUpsert = vi.mocked(upsertTransfers);
 const mockNotifyAirdrop = vi.mocked(notifyAirdrop);
+const mockNotifyAirdropByEmail = vi.mocked(notifyAirdropByEmail);
 const mockNotifyCollectByEmail = vi.mocked(notifyCollectByEmail);
 
 const transfer = (id: string): Transfers_t => ({
@@ -56,6 +59,8 @@ describe('processTransfersInBatches', () => {
     mockResolveCollectorNames.mockResolvedValue(undefined);
     mockUpsert.mockResolvedValue(undefined);
     mockNotifyCollectByEmail.mockResolvedValue(undefined);
+    mockNotifyAirdrop.mockResolvedValue(undefined);
+    mockNotifyAirdropByEmail.mockResolvedValue(undefined);
   });
 
   it('does nothing for empty array', async () => {
@@ -96,6 +101,7 @@ describe('processTransfersInBatches', () => {
     expect(mockUpsert).toHaveBeenCalledWith(rows);
     expect(mockNotifyCollectByEmail).toHaveBeenCalledWith(batch);
     expect(mockNotifyAirdrop).toHaveBeenCalledWith(batch);
+    expect(mockNotifyAirdropByEmail).toHaveBeenCalledWith(batch);
   });
 
   it('does not call ensureWallets or resolveCollectorNames when map returns no rows', async () => {
